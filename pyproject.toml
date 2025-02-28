@@ -18,6 +18,15 @@ classifiers = [
 ]
 
 dependencies = [
+    "loguru",
+    "fire",
+    "pydantic",
+    "playwright",
+    "beautifulsoup4",
+    "aiohttp",
+    "aiofiles",
+    "markdownify",
+    "lxml>=5.3.1",
 ]
 
 
@@ -40,12 +49,12 @@ all = [
 ]
 
 [project.scripts]
-# CLINAME = "d361.__main__:main"
+d361-offline = "d361.offline.__main__:main"
 
 
 
 [[project.authors]]
-name = "AUTHOR_NAME"
+name = "Adam Twardoch"
 email = "adam+github@twardoch.com"
 
 [project.urls]
