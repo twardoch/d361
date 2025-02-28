@@ -84,12 +84,12 @@ class CLI:
         self,
         prep_file: str = "",
         output_dir: str = "",
-        max_concurrent: int = 3,
+        parallel: int = 3,
         retries: int = 2,
         timeout: int = 60,
         verbose: bool = False,
         test: bool = False,
-        pause: int = 0,
+        wait: int = 0,
     ) -> dict[str, Any]:
         """Fetch content for all URLs in the prep file.
 
@@ -122,16 +122,33 @@ class CLI:
             msg = f"Prep file not found: {prep_path}"
             raise FileNotFoundError(msg)
 
+        # Get map URL from prep file for config
+        map_url = ""
+        try:
+            import json
+
+            with open(prep_path) as f:
+                prep_data = json.load(f)
+                if (
+                    prep_data
+                    and "config" in prep_data
+                    and "map_url" in prep_data["config"]
+                ):
+                    map_url = prep_data["config"]["map_url"]
+                    logger.debug(f"Using map_url from prep file: {map_url}")
+        except Exception as e:
+            logger.warning(f"Could not extract map_url from prep file: {e}")
+
         # Create config
         config = Config(
-            map_url="",  # Not used for fetch
+            map_url=map_url,
             output_dir=str(output_dir_path),
-            max_concurrent=max_concurrent,
+            max_concurrent=parallel,
             retries=retries,
             timeout=timeout,
             verbose=verbose,
             test=test,
-            pause=pause,
+            pause=wait,
         )
 
         # Initialize and run
@@ -142,7 +159,7 @@ class CLI:
         self,
         fetch_file: str = "",
         output_dir: str = "",
-        css_file: str = "",
+        style: str = "",
         verbose: bool = False,
     ) -> None:
         """Build HTML and Markdown output from fetched content.
@@ -169,11 +186,28 @@ class CLI:
             msg = f"Fetch file not found: {fetch_path}"
             raise FileNotFoundError(msg)
 
+        # Get map URL from fetch file for config
+        map_url = ""
+        try:
+            import json
+
+            with open(fetch_path) as f:
+                fetch_data = json.load(f)
+                if (
+                    fetch_data
+                    and "config" in fetch_data
+                    and "map_url" in fetch_data["config"]
+                ):
+                    map_url = fetch_data["config"]["map_url"]
+                    logger.debug(f"Using map_url from fetch file: {map_url}")
+        except Exception as e:
+            logger.warning(f"Could not extract map_url from fetch file: {e}")
+
         # Create config
         config = Config(
-            map_url="",  # Not used for build
+            map_url=map_url,
             output_dir=str(output_dir_path),
-            css_file=css_file or None,
+            css_file=style or None,
             verbose=verbose,
         )
 
@@ -186,9 +220,9 @@ class CLI:
         map_url: str = "https://docs.document360.com/sitemap-en.xml",
         nav_url: str = "",
         output_dir: str = "",
-        css_file: str = "",
+        style: str = "",
         effort: int = 1,
-        max_concurrent: int = 3,
+        parallel: int = 3,
         retries: int = 2,
         timeout: int = 60,
         verbose: bool = False,
@@ -218,10 +252,10 @@ class CLI:
         config = Config(
             map_url=map_url,
             nav_url=nav_url or None,
-            output_dir=Path(output_dir) if output_dir else Path("."),
-            css_file=Path(css_file) if css_file else None,
+            output_dir=str(Path(output_dir) if output_dir else Path(".")),
+            css_file=str(Path(style)) if style else None,
             effort=effort,
-            max_concurrent=max_concurrent,
+            max_concurrent=parallel,
             retries=retries,
             timeout=timeout,
             verbose=verbose,
@@ -237,7 +271,7 @@ class CLI:
 def main() -> None:
     """Entry point for the CLI."""
     try:
-        fire.Fire(CLI())
+        fire.Fire(CLI)
     except KeyboardInterrupt:
         logger.warning("Process interrupted by user")
         sys.exit(1)

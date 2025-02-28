@@ -19,8 +19,8 @@ DEFAULT_MAP_URL = TypeAdapter(AnyHttpUrl).validate_python(
 class Config(BaseModel):
     """Configuration model for d361_offline."""
 
-    map_url: AnyHttpUrl = Field(
-        default=DEFAULT_MAP_URL, description="URL of the sitemap that defines the scope"
+    map_url: AnyHttpUrl | None = Field(
+        default=None, description="URL of the sitemap that defines the scope"
     )
     nav_url: AnyHttpUrl | None = Field(
         default=None, description="URL of the page to gather navigation from"
@@ -53,7 +53,7 @@ class Config(BaseModel):
         default=False, description="Pause during navigation to allow user inspection"
     )
 
-    def __init__(self, **data) -> None:
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
 
         # Handle output_dir properly:
@@ -65,8 +65,15 @@ class Config(BaseModel):
                 if domain:
                     self.output_dir = Path.cwd() / domain
 
-    def model_dump(self, **kwargs) -> dict[str, Any]:
-        """Override model_dump to ensure all fields are JSON serializable."""
+    def model_dump(self, **kwargs: Any) -> dict[str, Any]:
+        """Override model_dump to ensure all fields are JSON serializable.
+
+        Args:
+            **kwargs: Arguments passed to model_dump
+
+        Returns:
+            Dictionary representation of the model
+        """
         data = super().model_dump(**kwargs)
         # Convert AnyHttpUrl to string
         if data.get("map_url"):

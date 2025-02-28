@@ -152,7 +152,7 @@ async def scroll_to_bottom(page: Page, selector: str, max_scrolls: int = 30) -> 
         logger.error(f"Error scrolling: {e}")
 
 
-async def expand_all_items(page: Page, selector: str, max_attempts: int = 5) -> int:
+async def expand_all_items(page: Page, selector: str, max_attempts: int = 12) -> int:
     """Recursively expand all items in a tree view by clicking collapsed triangle icons.
 
     Args:
@@ -164,11 +164,17 @@ async def expand_all_items(page: Page, selector: str, max_attempts: int = 5) -> 
         Number of nodes expanded
     """
     try:
-        logger.info(f"Starting expansion of tree items using selector: {selector}")
+        logger.info(
+            f"Starting aggressive expansion of tree items using selector: {selector}"
+        )
         expanded_count = 0
+        total_expanded = 0
 
-        # First, make sure all virtualized content is loaded by scrolling to bottom
-        await scroll_to_bottom(page, selector, max_scrolls=30)
+        # First, make sure all virtualized content is loaded by scrolling down thoroughly
+        for i in range(3):  # Do multiple complete scroll-throughs
+            logger.info(f"Initial scrolling pass {i + 1}/3 to reveal all content")
+            await scroll_to_bottom(page, selector, max_scrolls=80)  # Increased from 50
+            await page.wait_for_timeout(1000)  # Wait longer between passes
 
         # Now scroll back to the top to start expanding from the top
         await page.evaluate(f"""() => {{
@@ -180,20 +186,32 @@ async def expand_all_items(page: Page, selector: str, max_attempts: int = 5) -> 
         }}""")
         await page.wait_for_timeout(1000)
 
+        # Try more rounds of expansion with smaller batches but more aggressive scrolling
         for attempt in range(1, max_attempts + 1):
             logger.info(f"Expansion iteration {attempt}/{max_attempts}")
+            expanded_in_this_attempt = 0  # Track expansions in this attempt
 
             # Look for collapsed arrows - may vary by Document360 version
             collapsed_selectors = [
                 f"{selector} .tree-arrow .fa-angle-right",
                 f"{selector} .expand-icon.collapsed",
                 f"{selector} .collapsed-icon",
+                f"{selector} .tree-arrow i.fa-caret-right",
+                f"{selector} .tree-arrow i.fa-chevron-right",
+                f"{selector} i.fa-angle-right",
+                f"{selector} i.fa-caret-right",
+                f"{selector} i.fa-chevron-right",
                 ".tree-arrow .fa-angle-right",  # Fallback
-                ".fa-caret-right",  # Another common icon
+                ".tree-arrow .fa-caret-right",  # Another common icon
+                ".tree-arrow .fa-chevron-right",  # Another common icon
+                ".fa-caret-right",  # Generic fallback
+                ".fa-angle-right",  # Generic fallback
+                ".fa-chevron-right",  # Generic fallback
+                "[aria-expanded='false']",  # ARIA attribute for collapsed items
+                ".collapsed",  # Generic class for collapsed items
+                ".tree-node.collapsed",  # Common pattern
+                ".nav-item.collapsed",  # Another common pattern
             ]
-
-            found_any = False
-            total_found = 0
 
             for collapse_selector in collapsed_selectors:
                 try:
@@ -203,18 +221,36 @@ async def expand_all_items(page: Page, selector: str, max_attempts: int = 5) -> 
                     }}""")
 
                     if count > 0:
-                        found_any = True
-                        total_found += count
                         logger.info(
                             f"Found {count} collapsed items with selector: {collapse_selector}"
                         )
 
-                        # Click items in smaller batches to avoid DOM detachment issues
-                        for batch_start in range(0, count, 5):
-                            batch_end = min(batch_start + 5, count)
+                        # Click items in smaller batches for better reliability
+                        for batch_start in range(
+                            0, count, 2
+                        ):  # Even smaller batches (2)
+                            batch_end = min(batch_start + 2, count)
                             logger.debug(
                                 f"Processing batch {batch_start}-{batch_end} of {count}"
                             )
+
+                            # Scroll to ensure we can see elements in the current viewport
+                            scroll_step = (
+                                batch_start / count
+                            ) * 0.8  # 80% of total scroll height
+                            await page.evaluate(
+                                f"""(scrollPercentage) => {{
+                                const element = document.querySelector('{selector} cdk-virtual-scroll-viewport') ||
+                                              document.querySelector('{selector}');
+                                if (element) {{
+                                    element.scrollTop = scrollPercentage * element.scrollHeight;
+                                }}
+                            }}""",
+                                scroll_step,
+                            )
+                            await page.wait_for_timeout(
+                                500
+                            )  # Wait for scroll to settle
 
                             # Get fresh references to elements for each batch
                             collapsed_icons = await page.query_selector_all(
@@ -225,43 +261,170 @@ async def expand_all_items(page: Page, selector: str, max_attempts: int = 5) -> 
                             for i in range(
                                 batch_start, min(batch_end, len(collapsed_icons))
                             ):
-                                icon = collapsed_icons[i]
-                                try:
-                                    # Check if element is still attached and visible
-                                    is_visible = await icon.is_visible()
-                                    if is_visible:
-                                        await icon.scroll_into_view_if_needed()
-                                        await icon.click()
-                                        expanded_count += 1
-                                        # Short wait after each click
-                                        await page.wait_for_timeout(200)
-                                except Exception as e:
-                                    logger.debug(
-                                        f"Error expanding item: {str(e).split('\n')[0]}"
-                                    )
-                                    continue
+                                if i < len(collapsed_icons):
+                                    icon = collapsed_icons[i]
+                                    try:
+                                        # Check if element is still attached and visible
+                                        is_visible = await icon.is_visible()
+                                        if is_visible:
+                                            await icon.scroll_into_view_if_needed()
+                                            # Wait a bit before clicking for better stability
+                                            await page.wait_for_timeout(
+                                                200
+                                            )  # Longer wait
+                                            await icon.click(force=True)  # Force click
+                                            expanded_count += 1
+                                            expanded_in_this_attempt += 1
+                                            total_expanded += 1
+                                            # Short wait after each click
+                                            await page.wait_for_timeout(
+                                                300
+                                            )  # Longer wait
+                                    except Exception as e:
+                                        logger.debug(
+                                            f"Error expanding item: {str(e).split('\n')[0]}"
+                                        )
+                                        continue
 
                             # After each batch, wait a bit longer to let DOM settle
-                            await page.wait_for_timeout(500)
+                            await page.wait_for_timeout(1000)  # Increased from 750
                 except Exception as e:
                     logger.debug(
                         f"Error processing selector {collapse_selector}: {str(e).split('\n')[0]}"
                     )
                     continue
 
-            # If no collapsed items were found with any selector, we're done
-            if not found_any:
-                logger.info("No more collapsed items found")
+            # Try alternative approach using JavaScript for every attempt
+            try:
+                logger.info("Trying JavaScript-based expansion...")
+                # This attempts to click all arrow icons using JavaScript
+                expanded_js_count = await page.evaluate("""() => {
+                    let clicked = 0;
+                    const selectors = [
+                        '.tree-arrow .fa-angle-right',
+                        '.tree-arrow .fa-caret-right',
+                        '.tree-arrow .fa-chevron-right',
+                        '.expand-icon.collapsed',
+                        '.collapsed-icon',
+                        'i.fa-angle-right',
+                        'i.fa-caret-right',
+                        'i.fa-chevron-right',
+                        '[aria-expanded="false"]',
+                        '.collapsed',
+                        '.tree-node.collapsed',
+                        '.nav-item.collapsed'
+                    ];
+
+                    for (const selector of selectors) {
+                        const elements = document.querySelectorAll(selector);
+                        for (const el of elements) {
+                            if (el.offsetParent !== null) {  // Check if visible
+                                try {
+                                    el.click();
+                                    clicked++;
+                                } catch (e) {
+                                    // Ignore click errors
+                                }
+                            }
+                        }
+                    }
+                    return clicked;
+                }""")
+
+                if expanded_js_count > 0:
+                    logger.info(f"Expanded {expanded_js_count} items using JavaScript")
+                    expanded_count += expanded_js_count
+                    expanded_in_this_attempt += expanded_js_count
+                    total_expanded += expanded_js_count
+                    await page.wait_for_timeout(
+                        1500
+                    )  # Longer wait for expansions to complete
+            except Exception as e:
+                logger.debug(f"JavaScript expansion failed: {e}")
+
+            # After an expansion iteration, do a complete scroll through
+            logger.info(
+                f"Completed expansion iteration {attempt} with {expanded_in_this_attempt} items expanded"
+            )
+
+            # No items expanded in this iteration and we're past halfway? Try a more aggressive approach
+            if expanded_in_this_attempt == 0 and attempt > max_attempts // 2:
+                logger.info(
+                    "No items expanded in this attempt, trying more aggressive tactics"
+                )
+
+                # Try clicking any element that looks like it might be expandable
+                try:
+                    # Use a more generic selector for anything that might be clickable in a tree
+                    click_count = await page.evaluate("""() => {
+                        let clicked = 0;
+                        // Target elements that might be part of a tree structure
+                        const possibleItems = document.querySelectorAll('.tree-item, .tree-node, .nav-item, .toc-item, li.has-children, [role="treeitem"]');
+
+                        for (const item of possibleItems) {
+                            // Click the item itself and any icons/arrows within it
+                            try {
+                                item.click();
+                                clicked++;
+
+                                // Find and click any icon-like elements within
+                                const icons = item.querySelectorAll('i, .icon, .arrow');
+                                for (const icon of icons) {
+                                    try {
+                                        icon.click();
+                                        clicked++;
+                                    } catch(e) {}
+                                }
+                            } catch(e) {}
+                        }
+                        return clicked;
+                    }""")
+
+                    if click_count > 0:
+                        logger.info(
+                            f"Clicked {click_count} potentially expandable elements"
+                        )
+                        await page.wait_for_timeout(1500)
+                except Exception as e:
+                    logger.debug(f"Aggressive clicking failed: {e}")
+
+            # Give up if nothing happened in last two attempts
+            if attempt >= 3 and expanded_in_this_attempt == 0 and expanded_count == 0:
+                logger.info(
+                    "No progress in expansions for multiple attempts, may have reached limit"
+                )
                 break
 
-            # After an expansion iteration, scroll through to ensure we can see all items
-            logger.info(
-                f"Completed expansion iteration {attempt}, scrolling to check for more items..."
-            )
-            await scroll_to_bottom(page, selector)
+            # Scroll through the entire content again to reveal any newly expanded items
+            logger.info("Scrolling through content again to reveal new items...")
+            await scroll_to_bottom(page, selector, max_scrolls=80)
 
-        logger.info(f"Expanded {expanded_count} navigation items in total")
-        return expanded_count
+            # Also try scrolling up from bottom in chunks to catch items that might have been missed
+            await page.evaluate(f"""() => {{
+                const element = document.querySelector('{selector} cdk-virtual-scroll-viewport') ||
+                               document.querySelector('{selector}');
+                if (element) {{
+                    element.scrollTop = element.scrollHeight;  // Start at bottom
+                }}
+            }}""")
+
+            # Scroll up in 5 steps
+            for step in range(5):
+                scroll_position = 1.0 - (step / 5)  # 0.8, 0.6, 0.4, 0.2, 0.0
+                await page.evaluate(
+                    f"""(scrollPercentage) => {{
+                    const element = document.querySelector('{selector} cdk-virtual-scroll-viewport') ||
+                                  document.querySelector('{selector}');
+                    if (element) {{
+                        element.scrollTop = scrollPercentage * element.scrollHeight;
+                    }}
+                }}""",
+                    scroll_position,
+                )
+                await page.wait_for_timeout(800)  # Wait between scrolls
+
+        logger.info(f"Expanded {total_expanded} navigation items in total")
+        return total_expanded
 
     except Exception as e:
         logger.error(f"Error expanding items: {e}")
