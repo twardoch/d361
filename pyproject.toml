@@ -146,6 +146,8 @@ bench-save = "python -m pytest -v -p no:briefcase tests/test_benchmark.py --benc
 
 [tool.hatch.version]
 source = "vcs"
+path = 'src/d361/__version__.py'
+pattern = "__version__\\s*=\\s*version\\s*=\\s*['\"](?P<version>[^'\"]+)['\"]"
 
 
 [tool.hatch.version.raw-options]

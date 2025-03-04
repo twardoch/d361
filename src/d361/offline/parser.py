@@ -1,14 +1,14 @@
 # this_file: src/d361/offline/parser.py
 
 import asyncio
-import re
 import random
+import re
 from typing import Any
 
 import aiohttp
 from bs4 import BeautifulSoup
 from loguru import logger
-from playwright.async_api import async_playwright, Page, BrowserContext
+from playwright.async_api import BrowserContext, Page, async_playwright
 
 
 async def parse_sitemap(

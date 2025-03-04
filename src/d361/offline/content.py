@@ -1,8 +1,8 @@
 # this_file: src/d361/offline/content.py
 
 from loguru import logger
-from playwright.async_api import Page
 from markdownify import markdownify as md
+from playwright.async_api import Page
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 

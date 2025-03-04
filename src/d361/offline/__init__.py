@@ -16,8 +16,8 @@ This package provides functionality to:
 
 __version__ = "0.1.0"
 
+from .__main__ import CLI, main
 from .config import Config
 from .d361_offline import D361Offline
-from .__main__ import CLI, main
 
 __all__ = ["CLI", "Config", "D361Offline", "main"]
