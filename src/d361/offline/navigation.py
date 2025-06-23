@@ -210,9 +210,7 @@ async def extract_navigation(
                     )
                 else:
                     msg = "Fallback tree element not found after wait_for_selector"
-                    raise Exception(
-                        msg
-                    )
+                    raise Exception(msg)
             except Exception as e:
                 logger.warning(f"Fallback tree selector not found: {e}")
                 logger.warning(

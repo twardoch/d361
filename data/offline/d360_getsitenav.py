@@ -176,9 +176,7 @@ def main(md_file="nav.md", html_file="nav.html", json_file="nav.json") -> None:
         tree_view = page.query_selector(tree_selector)
         if not tree_view:
             msg = f"Tree view element not found with selector: {tree_selector}"
-            raise Exception(
-                msg
-            )
+            raise Exception(msg)
 
         # Expand all items and gather the tree structure
         expand_all_items(page, tree_view)
@@ -188,7 +186,6 @@ def main(md_file="nav.md", html_file="nav.html", json_file="nav.json") -> None:
         generate_markdown(tree, md_file)
         generate_html(tree, html_file)
         generate_json(tree, json_file)
-
 
         # Clean up
         browser.close()
