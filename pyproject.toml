@@ -28,6 +28,7 @@ dependencies = [
     "markdownify",
     "lxml>=5.3.1",
     "html2text>=2024.2.26",
+    "tenacity>=8.2.0", # Added tenacity
 ]
 
 
@@ -38,11 +39,15 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.0.0",
     "pyupgrade>=3.19.0",
+    # "types-tenacity", # Tenacity should be typed directly
+    # "types-python-fire", # Fire should be typed directly or stubs handled differently
+    "types-aiofiles", # Stubs for aiofiles
 ]
 
 test = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0", # Added pytest-mock
 ]
 
 
@@ -106,7 +111,16 @@ packages = ["src/d361"]
 
 [tool.hatch.envs.default]
 dependencies = [
+  "d361", # Install the project itself by its name
+  "mypy>=1.0.0",
+  # "types-tenacity", # Tenacity should be typed directly
+  # "types-python-fire", # Fire should be typed directly
+  "types-aiofiles", # Stubs for aiofiles
+  "pytest>=7.0.0", # For MyPy to find pytest stubs
+  # Ruff is also good to have for other default scripts like lint/fix
+  "ruff>=0.1.0"
 ]
+# This ensures MyPy and the project deps (like pydantic) are in the same env.
 
 [[tool.hatch.envs.all.matrix]]
 python = ["3.10", "3.11", "3.12"]
@@ -136,6 +150,10 @@ all = ["style", "typing"]
 
 [tool.hatch.envs.test]
 dependencies = [
+  "pytest>=7.0.0",
+  "pytest-cov>=4.0.0",
+  "pytest-mock>=3.10.0",
+  "pytest-xdist>=3.0.0", # For -n auto parallel execution
 ]
 
 [tool.hatch.envs.test.scripts]
@@ -167,7 +185,18 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
+plugins = [
+  "pydantic.mypy"
+]
 
+[[tool.mypy.overrides]]
+module = [
+    "markdownify",
+    "fire",
+    "playwright.async_api", # Adding this too as it was missing earlier
+    "tenacity" # If it still complains after removing types-tenacity
+]
+ignore_missing_imports = true
 
 [tool.ruff]
 target-version = "py310"
