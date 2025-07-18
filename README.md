@@ -64,20 +64,62 @@ This tool is beneficial for:
 
 ### Installation
 
-You can install D361 using `pip` or `uv` (a fast Python package installer).
+D361 can be installed in multiple ways depending on your needs:
 
-Using `pip`:
+#### Quick Installation (Recommended)
+
+```bash
+# One-line installation script
+curl -sSL https://raw.githubusercontent.com/twardoch/d361/main/scripts/install.sh | bash
+```
+
+#### Manual Installation
+
+**Via pip:**
 ```bash
 pip install d361
+playwright install chromium
 ```
 
-Using `uv`:
+**Via uv (faster):**
 ```bash
 uv pip install d361
+playwright install chromium
 ```
-Playwright browsers also need to be installed once after installation:
+
+**Binary Download (No Python required):**
 ```bash
-playwright install
+# Linux
+curl -L -o d361-offline https://github.com/twardoch/d361/releases/latest/download/d361-offline-ubuntu-latest
+chmod +x d361-offline
+
+# macOS
+curl -L -o d361-offline https://github.com/twardoch/d361/releases/latest/download/d361-offline-macos-latest
+chmod +x d361-offline
+
+# Windows
+curl -L -o d361-offline.exe https://github.com/twardoch/d361/releases/latest/download/d361-offline-windows-latest.exe
+```
+
+#### Installation Options
+
+The installation script supports various options:
+
+```bash
+# Install specific version
+./scripts/install.sh --version 1.0.0
+
+# Install via specific method
+./scripts/install.sh --method binary
+
+# Install with Playwright browsers
+./scripts/install.sh --install-browsers
+
+# Install to custom directory
+./scripts/install.sh --install-dir ~/.local/bin
+
+# See all options
+./scripts/install.sh --help
 ```
 
 ### Command Line Usage
@@ -424,6 +466,38 @@ Contributions are highly welcome! Please adhere to the following guidelines:
 6.  **Dependencies**:
     *   Minimize new dependencies. If adding one, justify its need.
     *   Add new dependencies to `pyproject.toml` under `[project.dependencies]` or `[project.optional-dependencies.dev]`.
+
+### Releases
+
+D361 follows [Semantic Versioning](https://semver.org/) and provides multiple distribution formats:
+
+- **PyPI Package**: Available on [PyPI](https://pypi.org/project/d361/) for `pip` and `uv` installation
+- **Binary Releases**: Pre-built executables for Linux, macOS, and Windows
+- **Source Code**: Available on [GitHub](https://github.com/twardoch/d361)
+
+Each release includes:
+- Source distribution (`.tar.gz`)
+- Wheel distribution (`.whl`)
+- Standalone binaries for all platforms
+- Automated testing across Python 3.10-3.12 and multiple operating systems
+
+#### Release Process
+
+New releases are automatically created when version tags are pushed:
+
+```bash
+# Create and push a new release tag
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+This triggers the CI/CD pipeline which:
+1. Runs comprehensive tests on all platforms
+2. Builds Python packages and binaries
+3. Publishes to PyPI
+4. Creates GitHub release with binary artifacts
+
+For development and contribution guidelines, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ### License
 
