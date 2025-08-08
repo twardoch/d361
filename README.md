@@ -1,4 +1,4 @@
-# D361: Document360 Offline Documentation Generator
+# D361: Robust Offline Documentation Generator
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![PyPI version](https://badge.fury.io/py/d361.svg)](https://badge.fury.io/py/d361)
@@ -7,60 +7,251 @@
 [![Checked with MyPy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 [![Tests Passing](https://github.com/twardoch/d361/actions/workflows/push.yml/badge.svg)](https://github.com/twardoch/d361/actions/workflows/push.yml)
 
-D361 is a powerful Python package designed to create comprehensive, browsable offline versions of online documentation sites, with a primary focus on **Document360** knowledge bases. It meticulously extracts, processes, and organizes documentation content, making it accessible without an internet connection.
+## 🚀 **TL;DR**
 
-## Part 1: Accessible Overview
+D361 is a robust, enterprise-grade Python package that creates comprehensive offline versions of Document360 knowledge bases and other sitemap-based documentation sites. It's the **generic, reusable foundation** of the Document360 unified toolkit, designed for reliability, performance, and seamless integration.
 
-This section provides a general overview of D361, its purpose, intended audience, benefits, and how to get started.
+**Quick Start:**
+```bash
+# Install and generate offline docs in one command
+pip install d361 && playwright install chromium
+d361-offline all --map-url="https://docs.example.com/sitemap-en.xml" --output-dir="offline_docs"
 
-### What D361 Does
+# Or use the standalone binary (no Python required)
+curl -L -o d361-offline https://github.com/twardoch/d361/releases/latest/download/d361-offline-ubuntu-latest
+chmod +x d361-offline && ./d361-offline all --map-url="https://docs.example.com/sitemap-en.xml"
+```
 
-D361 automates the process of downloading an entire Document360 site (or other sitemap-based documentation) and converting it into a local, offline-readable format. It achieves this by:
+**Key Features:**
+- 🎯 **Complete Documentation Capture** - Intelligently extracts entire documentation structures
+- 🚀 **Multi-Strategy Parsing** - Robust sitemap parsing with multiple fallback mechanisms
+- 🤖 **Browser Automation** - Playwright-based extraction with stealth techniques for dynamic content
+- 📱 **Multi-Format Output** - HTML, Markdown, and combined documentation files
+- ⚡ **Performance Optimized** - Concurrent downloads with intelligent retry logic
+- 🔄 **Navigation Preservation** - Maintains original site structure for intuitive offline browsing
 
-1.  **Discovering Content:** Parsing the site's `sitemap.xml` to find all page URLs.
-2.  **Understanding Structure:** Extracting the navigation menu (table of contents) from the live site.
-3.  **Fetching Pages:** Downloading the content of each documentation page.
-4.  **Processing Content:** Converting pages to both HTML and Markdown formats.
-5.  **Organizing Output:** Saving individual pages and creating combined, single-file versions with integrated navigation for easy browsing.
+---
 
-The result is a self-contained snapshot of your documentation that can be viewed on any computer.
+## 📦 **What is D361?**
 
-### Who Is D361 For?
+D361 is the **robust offline documentation generator** that serves as the foundational component of the Document360 unified toolkit. As a standalone package, it specializes in extracting, processing, and organizing documentation content for offline access, with enterprise-grade reliability and performance.
 
-This tool is beneficial for:
+**Core Purpose:**
+D361 automates the complete process of downloading entire Document360 sites (or other sitemap-based documentation) and converting them into comprehensive, browsable offline formats. It's designed to handle the complexities of modern documentation sites, including dynamic content, virtual scrolling, and complex navigation structures.
 
-*   **Technical Writers & Documentation Teams:** For archiving, local review, or providing documentation alongside offline-capable products.
-*   **Software Developers:** To bundle documentation with applications or for easy access in environments with limited internet.
-*   **Support Teams:** To have quick, offline access to knowledge bases when assisting customers.
-*   **End-Users:** Who need to access documentation in offline environments (e.g., on a factory floor, in a secure facility, during travel).
-*   **Anyone needing a portable, local copy of a Document360 site.**
+**The D361 Workflow:**
 
-### Why Is D361 Useful?
+1. **🔍 Multi-Strategy Discovery** - Advanced sitemap parsing with multiple fallback mechanisms
+2. **🗺️  Dynamic Structure Extraction** - Intelligently maps navigation hierarchies from live sites  
+3. **⚡ Concurrent Content Fetching** - High-performance parallel downloading with retry logic
+4. **🔄 Multi-Format Processing** - Converts content to HTML, Markdown, and combined formats
+5. **📁 Intelligent Organization** - Creates structured offline archives with preserved navigation
 
-*   **Offline Access:** Read documentation anywhere, anytime, without needing an internet connection.
-*   **Content Archival:** Create complete snapshots of your documentation at specific points in time.
-*   **Portability:** Easily share documentation sets with colleagues or customers.
-*   **Performance:** Browse documentation locally for faster access compared to online loading, especially on slow connections.
-*   **Reliability:** Ensures access to documentation even if the live site is temporarily unavailable.
+**Result:** A complete, self-contained documentation snapshot that works entirely offline.
 
-### Features
+## 🎯 **Who Uses D361?**
 
-*   **Complete Documentation Capture**: Intelligently extracts and preserves entire documentation structures from Document360 sites.
-*   **Multi-format Output**: Generates both HTML and Markdown versions of documentation.
-*   **Navigation Preservation**: Replicates the original site navigation structure for intuitive offline browsing.
-*   **Robust Fetching**:
-    *   Uses multiple strategies to access sitemaps and content, including advanced browser automation.
-    *   Handles dynamic content, cookie banners, and virtualized lists common in modern web apps.
-*   **Performance Optimized**:
-    *   Configurable concurrent requests for faster downloads.
-    *   Automatic retries with exponential backoff for network resilience.
-*   **Combined Output Files**: Creates single-page HTML and Markdown documents with embedded navigation for ease of use and distribution.
-*   **Customizable Styling**: Allows custom CSS for the generated HTML output.
-*   **Modern Python Implementation**:
-    *   Asynchronous operations (`asyncio`) for efficient I/O.
-    *   Type hints and runtime type checking with Pydantic.
-    *   PEP 621 compliant packaging with Hatch.
-    *   Comprehensive test suite.
+**Enterprise Documentation Teams:**
+- **Technical Writers** - Archive documentation versions, perform offline reviews, and create distribution packages
+- **DevOps Engineers** - Integrate offline documentation into deployment pipelines and container images
+- **Support Engineers** - Access knowledge bases instantly in customer support scenarios
+- **Compliance Teams** - Create immutable documentation snapshots for regulatory requirements
+
+**Development & Integration:**
+- **Software Developers** - Bundle documentation with applications for offline environments
+- **System Integrators** - Deploy documentation in air-gapped or restricted network environments  
+- **CI/CD Pipelines** - Automated documentation processing and archival as part of build processes
+- **Documentation Toolkit Builders** - Use D361 as a foundational component (like in `vexy-help`)
+
+**Specialized Use Cases:**
+- **Industrial/Manufacturing** - Offline documentation access on factory floors and production environments
+- **Healthcare/Government** - Secure, compliant documentation in regulated environments
+- **Field Service** - Technical documentation for remote locations with limited connectivity
+- **Training & Education** - Portable documentation packages for distributed learning
+
+## 🚀 **Why Choose D361?**
+
+**🔧 Technical Excellence:**
+- **Robust Architecture** - Handles complex modern documentation sites with dynamic content
+- **Enterprise Performance** - Concurrent processing with intelligent retry mechanisms and error handling
+- **Multiple Fallback Strategies** - Ensures successful content extraction even with challenging sites
+- **Format Flexibility** - Outputs HTML, Markdown, and combined formats for different use cases
+
+**🌐 Real-World Reliability:**
+- **Production-Tested** - Successfully processes large-scale documentation sites with thousands of pages
+- **Stealth Browser Automation** - Advanced Playwright techniques to handle cookie banners, virtual scrolling, and dynamic loading
+- **Content Preservation** - Maintains original navigation structure, styling, and cross-references
+- **Error Resilience** - Comprehensive error handling ensures partial success even with network issues
+
+**🔄 Integration-Friendly:**
+- **Standalone Operation** - Works independently without external dependencies on other toolkit components
+- **API-First Design** - Clean programmatic interface for integration into larger workflows
+- **Container-Ready** - Docker-friendly with minimal resource requirements
+- **Cross-Platform** - Native support for Linux, macOS, and Windows environments
+
+## ⚡ **Core Features & Capabilities**
+
+### 🎯 **Complete Documentation Extraction**
+D361 employs sophisticated techniques to capture entire documentation ecosystems:
+
+```python
+# Advanced content discovery with multiple fallback strategies
+from d361.offline.parser import parse_sitemap
+
+# Strategy 1: Direct sitemap parsing
+urls = await parse_sitemap("https://docs.example.com/sitemap-en.xml")
+
+# Strategy 2: Robots.txt discovery + parsing  
+urls = await parse_sitemap("https://docs.example.com/robots.txt", strategy="robots")
+
+# Strategy 3: Stealth browser automation for protected sites
+urls = await parse_sitemap("https://docs.example.com", strategy="stealth")
+```
+
+**What gets captured:**
+- 📄 All article content (HTML + converted Markdown)
+- 🗺️ Complete navigation hierarchy with nested categories
+- 🖼️ Referenced images and media files
+- 🔗 Cross-references and internal links  
+- 🎨 Original styling and CSS (optional)
+
+### 🚀 **Multi-Strategy Sitemap Parsing**
+Robust discovery mechanisms ensure content extraction even from challenging sites:
+
+```python
+from d361.offline.d361_offline import D361Offline
+from d361.offline.config import Config
+
+config = Config(
+    map_url="https://docs.example.com/sitemap-en.xml",
+    # Fallback strategies automatically attempted if primary fails
+    effort=True,  # Enable additional discovery strategies
+    max_concurrent=8,  # Concurrent parsing attempts
+    retries=3  # Per-strategy retry attempts
+)
+
+offline_gen = D361Offline(config)
+await offline_gen.prep()  # Intelligent sitemap discovery and parsing
+```
+
+**Parsing Strategies:**
+1. **Direct Navigation** - Standard HTTP GET to sitemap URL
+2. **Stealth Browser** - Playwright with human-like behavior patterns
+3. **HTTP Direct** - aiohttp-based lightweight parsing
+4. **Robots.txt Discovery** - Automatic sitemap URL discovery
+5. **Google Cache** - Last resort via cached versions
+
+### 🤖 **Advanced Browser Automation**
+Playwright-powered content extraction handles modern web complexity:
+
+```python
+from d361.offline.browser import setup_browser, expand_all_items
+
+# Configure stealth browser with realistic parameters
+browser_config = {
+    'headless': True,
+    'user_agent': 'Mozilla/5.0 (compatible; D361 Documentation Archiver)',
+    'viewport': {'width': 1920, 'height': 1080},
+    'extra_http_headers': {
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br'
+    }
+}
+
+async with setup_browser(**browser_config) as browser:
+    page = await browser.new_page()
+    await page.goto("https://docs.example.com")
+    
+    # Handle dynamic content loading
+    navigation_tree = await page.locator('#left-panel d360-data-list-tree-view').first
+    await expand_all_items(navigation_tree, page)  # Recursively expand all navigation
+    
+    # Extract complete navigation structure
+    nav_data = await extract_tree_structure(navigation_tree)
+```
+
+**Browser Automation Capabilities:**
+- 🍪 **Cookie Banner Dismissal** - Automatically handles consent dialogs  
+- 📜 **Virtual Scrolling** - Loads all content from virtually rendered lists
+- 🌳 **Dynamic Tree Expansion** - Recursively expands navigation hierarchies
+- ⏱️ **Network Idle Detection** - Waits for complete content loading
+- 🔄 **Retry Logic** - Handles intermittent failures gracefully
+
+### 📱 **Multi-Format Output Generation**
+Flexible output formats for different consumption needs:
+
+```python
+# Configure output formats and customization
+config = Config(
+    map_url="https://docs.example.com/sitemap-en.xml",
+    output_dir=Path("./offline_docs"),
+    css_file=Path("./custom-styling.css"),  # Custom CSS for HTML output
+    
+    # File naming patterns
+    all_docs_html_filename="complete_documentation.html",
+    all_docs_md_filename="complete_documentation.md",
+    
+    # Processing options
+    test=False,  # Process all content (not just test subset)
+    verbose=True  # Detailed logging
+)
+
+offline_gen = D361Offline(config)
+await offline_gen.all()  # Generate all formats
+```
+
+**Generated Output Structure:**
+```
+offline_docs/docs.example.com/
+├── prep.json              # Sitemap discovery metadata
+├── fetch.json             # Content extraction results  
+├── nav.json               # Navigation structure data
+├── nav.html               # Standalone navigation menu
+├── nav.md                 # Markdown navigation index
+├── all_docs.html          # Complete HTML with embedded navigation
+├── all_docs.md            # Complete Markdown with TOC
+├── html/                  # Individual HTML pages
+│   ├── getting-started.html
+│   ├── api-reference.html
+│   └── ...
+└── md/                    # Individual Markdown pages
+    ├── getting-started.md
+    ├── api-reference.md
+    └── ...
+```
+
+### ⚡ **Performance-Optimized Processing**
+Enterprise-grade performance with intelligent resource management:
+
+```python
+from d361.offline.config import Config
+
+# Performance-tuned configuration
+config = Config(
+    map_url="https://docs.example.com/sitemap-en.xml",
+    max_concurrent=12,        # Concurrent page fetching
+    timeout=60,              # Per-page timeout (seconds)
+    retries=5,               # Retry attempts for failed pages  
+    pause=0,                 # No artificial delays (max speed)
+)
+
+# Monitor performance during processing
+offline_gen = D361Offline(config)
+
+start_time = time.time()
+result = await offline_gen.all()
+processing_time = time.time() - start_time
+
+print(f"Processed {len(result['content'])} pages in {processing_time:.2f}s")
+print(f"Average: {processing_time/len(result['content']):.3f}s per page")
+```
+
+**Performance Features:**
+- 🚀 **Concurrent Downloads** - Configurable parallel processing (default: 5 concurrent)
+- 🔄 **Exponential Backoff** - Intelligent retry delays with `tenacity` library
+- 💾 **Memory Efficient** - Streaming content processing to minimize memory usage
+- 📊 **Progress Tracking** - Real-time processing status and performance metrics
+- ⚡ **Network Optimization** - Connection pooling and keep-alive for HTTP efficiency
 
 ### Installation
 

@@ -18,37 +18,60 @@ classifiers = [
 ]
 
 dependencies = [
-    "loguru",
-    "fire",
-    "pydantic",
-    "playwright",
-    "beautifulsoup4",
-    "aiohttp",
-    "aiofiles",
-    "markdownify",
-    "lxml>=5.3.1",
-    "html2text>=2024.2.26",
-    "tenacity>=8.2.0", # Added tenacity
+    "httpx>=0.25.0",        # Unified HTTP client (replaces aiohttp)
+    "pydantic>=2.0,<3.0",   # Pydantic v2 for data validation
+    "rich>=13.0.0",         # Rich terminal output
+    "fire>=0.5.0",          # CLI framework
+    "loguru>=0.7.0",        # Structured logging
+    "tenacity>=8.2.0",      # Retry mechanisms
+    "diskcache>=5.6.0",     # Persistent caching
+    "playwright>=1.40.0",   # Web scraping (optional)
+    "beautifulsoup4>=4.12.0", # HTML parsing
+    "markdownify>=0.11.0",  # HTML to Markdown conversion
+    "lxml>=5.3.1",         # XML/HTML parsing
+    "aiofiles>=23.0.0",    # Async file operations
+    "d361api",             # Auto-generated Document360 API client
 ]
 
 
 [project.optional-dependencies]
 
+# Core optional dependencies
+scraping = [
+    "playwright>=1.40.0",
+    "beautifulsoup4>=4.12.0",
+]
+
+api = [
+    "httpx-auth>=0.16.0",  # Authentication helpers
+]
+
+# Development dependencies
 dev = [
     "pre-commit>=3.6.0",
     "ruff>=0.1.0",
     "mypy>=1.0.0",
     "pyupgrade>=3.19.0",
-    "pyinstaller>=6.0.0",
-    # "types-tenacity", # Tenacity should be typed directly
-    # "types-python-fire", # Fire should be typed directly or stubs handled differently
-    "types-aiofiles", # Stubs for aiofiles
+    "types-aiofiles",
+    "types-beautifulsoup4",
+    "bandit>=1.7.0",       # Security scanning
 ]
 
+# Testing dependencies
 test = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
-    "pytest-mock>=3.10.0", # Added pytest-mock
+    "pytest-mock>=3.10.0",
+    "pytest-asyncio>=0.21.0",
+    "httpx>=0.25.0",       # For testing HTTP clients
+    "pytest-httpx>=0.21.0", # Mock HTTP responses
+]
+
+# Monitoring dependencies  
+monitoring = [
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
+    "prometheus-client>=0.19.0",
 ]
 
 
@@ -56,7 +79,16 @@ all = [
 ]
 
 [project.scripts]
-d361-offline = "d361.offline.__main__:main"
+d361 = "d361.cli.main:main_cli"
+d361-offline = "d361.offline.__main__:main"  # Keep legacy entry point
+
+[project.entry-points."d361.converters"]
+# Plugin entry points for converters will be registered here
+# Example: confluence = "d361_plugins.confluence:ConfluenceConverter"
+
+[project.entry-points."d361.providers"] 
+# Plugin entry points for data providers
+# Example: custom = "d361_plugins.custom:CustomProvider"
 
 
 
