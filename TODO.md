@@ -9,21 +9,28 @@ This document contains the linearized itemized plan for enhancing the d361 packa
 
 ---
 
-## Phase 1: Core MkDocs Export Architecture (Week 1-2)
+## Phase 1: Document360 Archive Processing Enhancement (Week 1-2)
 
-### 1.1 Architecture Foundation
-- [ ] Create `d361/src/d361/mkdocs/` module structure with proper __init__.py files
-- [ ] Design MkDocs export interfaces and abstract base classes
-- [ ] Create configuration schema for MkDocs export settings in d361.config
-- [ ] Establish Jinja2 template system for MkDocs configs with template discovery
-- [ ] Set up logging and error handling for MkDocs operations using d361 patterns
+### 1.1 Archive Processing Enhancement
+- [ ] Enhance existing d361.archive module for Document360 structure extraction
+- [ ] Extract category/article hierarchy with original ordering information
+- [ ] Process Document360 metadata for numerical prefix generation
+- [ ] Handle Document360-specific content types and relationships
+- [ ] Preserve cross-references and internal linking structure
 
-### 1.2 Core Export Engine Implementation  
-- [ ] Implement `MkDocsExporter` main orchestrator class with async support
-- [ ] Create `ConfigGenerator` for dynamic MkDocs YAML generation with validation
-- [ ] Build `NavigationBuilder` for intelligent navigation structures from Document360 hierarchy
-- [ ] Develop `MarkdownProcessor` for Document360 → MkDocs markdown conversion
-- [ ] Add `AssetManager` for image and resource handling with CDN URL rewriting
+### 1.2 Numerical Ordering System Implementation
+- [ ] Implement numerical prefix generation based on Document360 order
+- [ ] Create file naming system: "01_category/02_article.md" format
+- [ ] Ensure compatibility with mkdocs-awesome-nav navigation discovery
+- [ ] Support vexy-mkdocs-strip-number-prefix for clean URLs
+- [ ] Add validation for ordering consistency and completeness
+
+### 1.3 Archive Processing Integration
+- [ ] Integrate with existing d361.providers for archive data access
+- [ ] Connect with d361.scraping.content_processor for content enhancement
+- [ ] Add MkDocs-specific archive processing capabilities
+- [ ] Test with Vexy-Lines-2025-Aug-07-12-38-29.zip
+- [ ] Validate structure extraction accuracy and completeness
 
 ### 1.3 Template System Foundation
 - [ ] Create base MkDocs configuration templates (mkdocs_base.yml.j2)

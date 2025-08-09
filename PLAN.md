@@ -16,14 +16,20 @@ The d361 package is already well-structured with:
 
 ## MkDocs Export Enhancement Objectives
 
-### 1. Comprehensive MkDocs Export Implementation
-**Goal**: Create best-in-class Document360 → MkDocs conversion system in d361
+### 1. Document360 Archive Processing with Numerical Ordering
+**Goal**: Create Document360 offline archive → MkDocs conversion with proper file ordering
 
-**Components to Add**:
-- `d361/mkdocs/exporters/` - Complete MkDocs export orchestration
-- `d361/mkdocs/templates/` - Jinja2 templates for MkDocs configurations
-- `d361/mkdocs/processors/` - Content processing pipeline for MkDocs
-- `d361/mkdocs/plugins/` - Custom MkDocs plugins for Document360 compatibility
+**Key Requirements**:
+- Process Document360 archives (like Vexy-Lines-2025-Aug-07-12-38-29.zip)
+- Generate numerical prefixes matching Document360 ordering
+- Support mkdocs-awesome-nav and vexy-mkdocs-strip-number-prefix plugins
+- Enable two-stage build process for enhanced processing
+
+**Components to Enhance**:
+- `d361/mkdocs/exporters/` - Enhanced MkDocs export with numerical ordering
+- `d361/mkdocs/templates/` - Templates for specialized plugin configurations  
+- `d361/mkdocs/processors/` - Archive processing with ordering preservation
+- `d361/archive/` - Enhanced archive handling for structure extraction
 
 **Research-Informed Design**:
 - **MkDocs Core Features**: Static site generation, YAML configuration, live preview, navigation
@@ -84,22 +90,22 @@ The d361 package is already well-structured with:
 
 ## MkDocs Export Implementation Plan
 
-### Phase 1: Core MkDocs Export Architecture (Week 1-2)
-**Objective**: Establish foundational MkDocs export capabilities in d361
+### Phase 1: Document360 Archive Processing Enhancement (Week 1-2)
+**Objective**: Enhance d361 archive processing for Document360 structure extraction with ordering
 
-- **Week 1**: Architecture Foundation
-  - Create `d361/src/d361/mkdocs/` module structure  
-  - Design MkDocs export interfaces and abstract base classes
-  - Create configuration schema for MkDocs export settings
-  - Establish Jinja2 template system for MkDocs configs
-  - Set up logging and error handling for MkDocs operations
+- **Week 1**: Archive Processing Enhancement
+  - Enhance existing archive module for Document360 structure extraction
+  - Extract category/article hierarchy with original ordering information
+  - Process Document360 metadata for numerical prefix generation
+  - Handle Document360-specific content types and relationships
+  - Preserve cross-references and internal linking structure
 
-- **Week 2**: Core Export Engine
-  - Implement `MkDocsExporter` main orchestrator class
-  - Create `ConfigGenerator` for dynamic MkDocs YAML generation
-  - Build `NavigationBuilder` for intelligent navigation structures  
-  - Develop `MarkdownProcessor` for Document360 → MkDocs markdown conversion
-  - Add `AssetManager` for image and resource handling
+- **Week 2**: Numerical Ordering System
+  - Implement numerical prefix generation based on Document360 order
+  - Create file naming system: "01_category/02_article.md" format
+  - Ensure compatibility with mkdocs-awesome-nav navigation discovery
+  - Support vexy-mkdocs-strip-number-prefix for clean URLs
+  - Add validation for ordering consistency and completeness
 
 ### Phase 2: Advanced Content Processing (Week 3-4)
 **Objective**: Enhanced content processing with MkDocs-specific optimizations

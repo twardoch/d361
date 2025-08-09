@@ -132,16 +132,16 @@ class Document360Parser:
             cat_name = cat_data.get("Title", lang_data.get("Title", "Untitled"))
             current_path = f"{path_prefix}/{cat_name}" if path_prefix else cat_name
 
-            # Create d361 canonical Category model
+            # Create d361 canonical Category model  
             category = Category(
-                id=int(cat_data["Id"]),
+                id=cat_data["Id"],  # Support both integer and UUID string IDs
                 name=cat_name,
                 slug=slug,
                 parent_id=parent_id,
                 order=cat_data.get("Order", 0),
                 level=level,
                 path=current_path,
-                description=lang_data.get("Description", ""),
+                description=lang_data.get("Description") or "",  # Handle null descriptions
                 created_at=datetime.now(),  # Default since not in export
                 updated_at=datetime.now(),  # Default since not in export
                 is_public=True,  # Default for Document360
@@ -179,7 +179,7 @@ class Document360Parser:
         articles = []
         category_id_map = {cat.id: cat for cat in categories}
 
-        def extract_articles_from_category(cat_data: dict[str, Any], category_id: int) -> None:
+        def extract_articles_from_category(cat_data: dict[str, Any], category_id: int | str) -> None:
             # Parse articles in this category
             articles_data = cat_data.get("Articles", [])
             for art_data in articles_data:
@@ -188,24 +188,24 @@ class Document360Parser:
 
             # Recursively process subcategories
             for subcat_data in cat_data.get("SubCategories", []):
-                extract_articles_from_category(subcat_data, int(subcat_data["Id"]))
+                extract_articles_from_category(subcat_data, subcat_data["Id"])  # Support both integer and UUID string IDs
 
         # Process root categories from metadata
         categories_data = metadata.get("Categories", metadata.get("categories", []))
         for cat_data in categories_data:
-            extract_articles_from_category(cat_data, int(cat_data["Id"]))
+            extract_articles_from_category(cat_data, cat_data["Id"])  # Support both integer and UUID string IDs
 
         # Sort articles by category and order
         articles.sort(key=lambda a: (a.category_id, a.order))
 
         return articles
 
-    def _parse_article_metadata(self, art_data: dict[str, Any], category_id: int) -> Article:
+    def _parse_article_metadata(self, art_data: dict[str, Any], category_id: int | str) -> Article:
         """Parse article metadata into d361 canonical model.
 
         Args:
             art_data: Article data from JSON
-            category_id: Parent category ID
+            category_id: Parent category ID (integer or UUID string)
 
         Returns:
             Article instance using d361 canonical model
@@ -217,7 +217,7 @@ class Document360Parser:
         # Create d361 canonical Article model
         # Note: Some fields will be updated when loading content from files
         article = Article(
-            id=int(art_data["Id"]),
+            id=art_data["Id"],  # Support both integer and UUID string IDs
             title=slug.replace("-", " ").title(),  # Will be updated from file
             slug=slug,
             content="",  # Will be loaded from file

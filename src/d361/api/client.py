@@ -9,28 +9,22 @@ Now uses d361api for underlying API operations while preserving enterprise featu
 
 from __future__ import annotations
 
-import asyncio
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
-from urllib.parse import urljoin
 
 from loguru import logger
 from pydantic import BaseModel, Field, HttpUrl, validator
 
-from ..http.client import UnifiedHttpClient, HttpResponse
+# UnifiedHttpClient no longer needed - using d361api directly
 from .token_manager import TokenManager, TokenStats
 from .errors import Document360Error, ErrorHandler, AuthenticationError, ValidationError
 
-# Import d361api components for API operations
-try:
-    from d361api import ApiClient as D361ApiClient, Configuration, ArticlesApi, CategoriesApi, ProjectVersionsApi
-    from d361api.exceptions import ApiException as D361ApiException
-    D361API_AVAILABLE = True
-    logger.info("d361api is available - using auto-generated API client for operations")
-except ImportError:
-    D361API_AVAILABLE = False
-    logger.warning("d361api not available - falling back to custom HTTP client implementation")
+# Import required d361api components for API operations
+from d361api import ApiClient as D361ApiClient, Configuration, ArticlesApi, CategoriesApi, ProjectVersionsApi
+from d361api.exceptions import ApiException as D361ApiException
+
+logger.info("d361api loaded successfully - using official API client for all operations")
 
 
 class ApiConfig(BaseModel):
@@ -141,22 +135,15 @@ class Document360ApiClient:
             calls_per_minute=config.calls_per_minute
         )
         
-        # Initialize HTTP client with user agent in default headers
-        default_headers = {"User-Agent": config.user_agent}
+        # HTTP client no longer needed - using d361api directly
         
-        self.http_client = UnifiedHttpClient(
-            timeout=config.timeout,
-            default_headers=default_headers
-        )
-        
-        # Initialize d361api clients if available
+        # Initialize required d361api clients
         self._d361api_client = None
         self._articles_api = None
         self._categories_api = None
         self._project_versions_api = None
         
-        if D361API_AVAILABLE:
-            self._setup_d361api_clients()
+        self._setup_d361api_clients()
         
         # Request statistics
         self._total_requests = 0
@@ -164,42 +151,31 @@ class Document360ApiClient:
         self._failed_requests = 0
         self._start_time = time.time()
         
-        api_backend = "d361api (auto-generated)" if D361API_AVAILABLE else "custom HTTP client"
         logger.info(
             "Document360ApiClient initialized",
             base_url=self.base_url,
             token_count=len(config.api_tokens),
             rate_limit=config.calls_per_minute,
-            backend=api_backend,
+            backend="d361api (auto-generated)",
         )
     
     def _setup_d361api_clients(self):
         """Setup d361api clients for API operations."""
-        try:
-            # Configure d361api
-            d361_config = Configuration(
-                host=self.base_url,
-                api_key={"api_token": self.config.api_tokens[0]},  # Use first token as default
-                api_key_prefix={"api_token": ""}
-            )
-            
-            # Initialize API client
-            self._d361api_client = D361ApiClient(configuration=d361_config)
-            
-            # Initialize specific API clients
-            self._articles_api = ArticlesApi(api_client=self._d361api_client)
-            self._categories_api = CategoriesApi(api_client=self._d361api_client)
-            self._project_versions_api = ProjectVersionsApi(api_client=self._d361api_client)
-            
-            logger.debug("d361api clients initialized successfully")
-            
-        except Exception as e:
-            logger.error(f"Failed to initialize d361api clients: {e}")
-            # Fall back to custom implementation
-            self._d361api_client = None
-            self._articles_api = None
-            self._categories_api = None
-            self._project_versions_api = None
+        # Configure d361api
+        d361_config = Configuration(
+            host=self.base_url,
+            api_key={"api_token": self.config.api_tokens[0]},  # Use first token as default
+            api_key_prefix={"api_token": ""}
+        )
+        
+        # Initialize API client
+        self._d361api_client = D361ApiClient(configuration=d361_config)
+        
+        # Initialize specific API clients
+        self._articles_api = ArticlesApi(api_client=self._d361api_client)
+        self._categories_api = CategoriesApi(api_client=self._d361api_client)
+        self._project_versions_api = ProjectVersionsApi(api_client=self._d361api_client)
+        logger.debug("d361api clients initialized successfully")
     
     async def _execute_with_d361api(self, operation_name: str, api_call):
         """Execute an API call using d361api with proper token management and error handling.
@@ -252,126 +228,7 @@ class Document360ApiClient:
             ErrorHandler.log_error(error, operation_name)
             raise error
     
-    async def _make_request(
-        self,
-        method: str,
-        endpoint: str,
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
-    ) -> HttpResponse:
-        """
-        Make an authenticated API request with comprehensive error handling.
-        
-        Args:
-            method: HTTP method (GET, POST, PUT, DELETE)
-            endpoint: API endpoint path (without base URL)
-            params: Query parameters
-            data: Request body data
-            headers: Additional headers
-            
-        Returns:
-            HTTP response object
-            
-        Raises:
-            Document360Error: For API errors with classification and retry info
-        """
-        url = urljoin(f"{self.base_url}/", endpoint.lstrip('/'))
-        request_headers = headers or {}
-        
-        # Add common headers
-        request_headers.update({
-            'Accept': 'application/json',
-            'Content-Type': 'application/json' if data else 'application/json',
-        })
-        
-        self._total_requests += 1
-        
-        async def make_request_with_token(token: str) -> HttpResponse:
-            """Internal function to make request with specific token."""
-            auth_headers = request_headers.copy()
-            auth_headers['api_token'] = token
-            
-            if self.config.log_requests:
-                logger.debug(
-                    "Making API request",
-                    method=method,
-                    url=url,
-                    params=params,
-                    token_hash=f"***{token[-4:] if len(token) > 4 else '****'}",
-                )
-            
-            try:
-                response = await self.http_client.request(
-                    method=method,
-                    url=url,
-                    params=params,
-                    json=data,
-                    headers=auth_headers
-                )
-                
-                # Update token rate limit info from response headers
-                calls_remaining = response.headers.get('X-RateLimit-Remaining')
-                reset_time = response.headers.get('X-RateLimit-Reset')
-                
-                if calls_remaining is not None:
-                    try:
-                        remaining = int(calls_remaining)
-                        reset_datetime = None
-                        
-                        if reset_time:
-                            # Parse reset time (could be timestamp or seconds)
-                            try:
-                                reset_timestamp = int(reset_time)
-                                if reset_timestamp > 1000000000:  # Unix timestamp
-                                    reset_datetime = datetime.fromtimestamp(reset_timestamp)
-                                else:  # Seconds from now
-                                    reset_datetime = datetime.now() + timedelta(seconds=reset_timestamp)
-                            except (ValueError, OSError):
-                                pass
-                        
-                        self.token_manager.update_token_rate_limit(
-                            token=token,
-                            calls_remaining=remaining,
-                            reset_time=reset_datetime
-                        )
-                    except (ValueError, TypeError):
-                        pass
-                
-                # Check for API errors in successful HTTP responses
-                if response.status_code >= 400:
-                    error = ErrorHandler.classify_error(response)
-                    ErrorHandler.log_error(error, f"{method} {endpoint}")
-                    raise error
-                
-                self._successful_requests += 1
-                return response
-                
-            except Exception as e:
-                if not isinstance(e, Document360Error):
-                    error = ErrorHandler.classify_error(None, e)
-                    ErrorHandler.log_error(error, f"{method} {endpoint}")
-                    raise error
-                raise
-        
-        try:
-            # Execute request with token manager
-            response = await self.token_manager.execute_with_token(
-                operation=make_request_with_token,
-                max_retries=self.config.max_retries
-            )
-            
-            return response
-            
-        except Exception as e:
-            self._failed_requests += 1
-            if isinstance(e, Document360Error):
-                raise
-            
-            # Wrap unexpected errors
-            error = ErrorHandler.classify_error(None, e)
-            ErrorHandler.log_error(error, f"{method} {endpoint}")
-            raise error
+    # _make_request method removed - using d361api directly
     
     async def get_article(self, article_id: str) -> Dict[str, Any]:
         """
@@ -395,20 +252,11 @@ class Document360ApiClient:
                 value=article_id
             )
         
-        # Use d361api if available
-        if self._articles_api:
-            return await self._execute_with_d361api(
-                f"GET articles/{article_id}",
-                lambda: self._articles_api.v2_articles_article_id_get(article_id)
-            )
-        
-        # Fall back to custom HTTP client
-        response = await self._make_request(
-            method="GET",
-            endpoint=f"articles/{article_id}"
+        # Use d361api for operation
+        return await self._execute_with_d361api(
+            f"GET articles/{article_id}",
+            lambda: self._articles_api.v2_articles_article_id_get(article_id)
         )
-        
-        return response.json_data
     
     async def list_articles(
         self,
@@ -447,36 +295,16 @@ class Document360ApiClient:
                 value=offset
             )
         
-        # Use d361api if available
-        if self._articles_api:
-            return await self._execute_with_d361api(
-                "GET articles",
-                lambda: self._articles_api.v2_articles_get(
-                    category_id=category_id,
-                    project_version_id=project_version_id,
-                    limit=limit,
-                    offset=offset
-                )
+        # Use d361api for operation
+        return await self._execute_with_d361api(
+            "GET articles",
+            lambda: self._articles_api.v2_articles_get(
+                category_id=category_id,
+                project_version_id=project_version_id,
+                limit=limit,
+                offset=offset
             )
-        
-        # Fall back to custom HTTP client
-        params = {
-            "limit": limit,
-            "offset": offset
-        }
-        
-        if category_id:
-            params["category_id"] = category_id
-        if project_version_id:
-            params["project_version_id"] = project_version_id
-        
-        response = await self._make_request(
-            method="GET",
-            endpoint="articles",
-            params=params
         )
-        
-        return response.json_data
     
     async def create_article(self, article_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -509,13 +337,8 @@ class Document360ApiClient:
                 value=missing_fields
             )
         
-        response = await self._make_request(
-            method="POST",
-            endpoint="articles",
-            data=article_data
-        )
-        
-        return response.json_data
+        # Use d361api for operation - need to implement CreateArticleRequest mapping
+        raise NotImplementedError("create_article requires d361api CreateArticleRequest mapping")
     
     async def update_article(self, article_id: str, article_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -547,13 +370,8 @@ class Document360ApiClient:
                 value=type(article_data).__name__
             )
         
-        response = await self._make_request(
-            method="PUT",
-            endpoint=f"articles/{article_id}",
-            data=article_data
-        )
-        
-        return response.json_data
+        # Use d361api for operation - need to implement UpdateArticleRequest mapping
+        raise NotImplementedError("update_article requires d361api UpdateArticleRequest mapping")
     
     async def delete_article(self, article_id: str) -> bool:
         """
@@ -577,12 +395,8 @@ class Document360ApiClient:
                 value=article_id
             )
         
-        response = await self._make_request(
-            method="DELETE",
-            endpoint=f"articles/{article_id}"
-        )
-        
-        return response.status_code == 204 or response.status_code == 200
+        # Use d361api for operation - need to implement delete operation
+        raise NotImplementedError("delete_article requires d361api delete operation mapping")
     
     async def get_categories(self, project_version_id: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -594,27 +408,13 @@ class Document360ApiClient:
         Returns:
             Categories data
         """
-        # Use d361api if available
-        if self._categories_api:
-            return await self._execute_with_d361api(
-                "GET categories",
-                lambda: self._categories_api.v2_categories_get(
-                    project_version_id=project_version_id
-                )
+        # Use d361api for operation
+        return await self._execute_with_d361api(
+            "GET categories",
+            lambda: self._categories_api.v2_categories_get(
+                project_version_id=project_version_id
             )
-        
-        # Fall back to custom HTTP client
-        params = {}
-        if project_version_id:
-            params["project_version_id"] = project_version_id
-        
-        response = await self._make_request(
-            method="GET",
-            endpoint="categories",
-            params=params if params else None
         )
-        
-        return response.json_data
     
     async def get_project_versions(self) -> Dict[str, Any]:
         """
@@ -623,20 +423,11 @@ class Document360ApiClient:
         Returns:
             Project versions data
         """
-        # Use d361api if available
-        if self._project_versions_api:
-            return await self._execute_with_d361api(
-                "GET project_versions",
-                lambda: self._project_versions_api.v2_project_versions_get()
-            )
-        
-        # Fall back to custom HTTP client
-        response = await self._make_request(
-            method="GET",
-            endpoint="project_versions"
+        # Use d361api for operation
+        return await self._execute_with_d361api(
+            "GET project_versions",
+            lambda: self._project_versions_api.v2_project_versions_get()
         )
-        
-        return response.json_data
     
     async def health_check(self) -> Dict[str, Any]:
         """
@@ -673,8 +464,6 @@ class Document360ApiClient:
     
     async def close(self) -> None:
         """Clean up resources and close connections."""
-        await self.http_client.close()
-        
         # Clean up d361api clients
         if self._d361api_client:
             try:

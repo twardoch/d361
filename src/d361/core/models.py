@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import Any, Union
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
@@ -50,7 +50,7 @@ class Article(BaseModel):
     )
 
     # Core identifiers
-    id: int = Field(..., description="Unique article identifier")
+    id: Union[int, str] = Field(..., description="Unique article identifier (integer or UUID string)")
     title: str = Field(..., min_length=1, max_length=500, description="Article title")
     slug: str = Field("", description="URL-friendly version of the title")
     
@@ -60,7 +60,7 @@ class Article(BaseModel):
     excerpt: str = Field("", max_length=1000, description="Article excerpt or summary")
     
     # Categorization and structure
-    category_id: int = Field(..., description="Parent category identifier")
+    category_id: Union[int, str] = Field(..., description="Parent category identifier (integer or UUID string)")
     order: int = Field(0, ge=0, description="Display order within category")
     status: PublishStatus = Field(PublishStatus.DRAFT, description="Publication status")
     
@@ -70,7 +70,7 @@ class Article(BaseModel):
     published_at: datetime | None = Field(None, description="Publication timestamp")
     
     # Author and attribution
-    author_id: int | None = Field(None, description="Author identifier")
+    author_id: Union[int, str, None] = Field(None, description="Author identifier (integer or UUID string)")
     author_name: str = Field("", description="Author display name")
     author_email: str = Field("", description="Author email address")
     
@@ -80,7 +80,7 @@ class Article(BaseModel):
     tags: list[str] = Field(default_factory=list, description="Article tags")
     
     # Document360-specific fields
-    version_id: int | None = Field(None, description="Version identifier")
+    version_id: Union[int, str, None] = Field(None, description="Version identifier (integer or UUID string)")
     language_code: str = Field("en", description="Content language code")
     is_public: bool = Field(True, description="Whether article is publicly accessible")
     
@@ -133,12 +133,12 @@ class Category(BaseModel):
     )
 
     # Core identifiers
-    id: int = Field(..., description="Unique category identifier")
+    id: Union[int, str] = Field(..., description="Unique category identifier (integer or UUID string)")
     name: str = Field(..., min_length=1, max_length=200, description="Category name")
     slug: str = Field("", description="URL-friendly version of the name")
     
     # Hierarchy and structure
-    parent_id: int | None = Field(None, description="Parent category identifier")
+    parent_id: Union[int, str, None] = Field(None, description="Parent category identifier (integer or UUID string)")
     order: int = Field(0, ge=0, description="Display order within parent")
     level: int = Field(0, ge=0, description="Hierarchy level (0 = root)")
     path: str = Field("", description="Full hierarchical path")
