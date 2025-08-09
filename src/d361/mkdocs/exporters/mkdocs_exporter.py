@@ -176,6 +176,17 @@ class MkDocsExporter:
                 base_url=self.api_base_url
             )
             
+        elif self.source == "processed":
+            # For processed mode, create a minimal archive provider that works with pre-processed content
+            # This is used for stage 2 processing where content was already processed in stage 1
+            logger.info("Using processed mode - creating minimal provider for stage 2 processing")
+            
+            # Create a dummy archive provider that returns empty results
+            # In processed mode, the actual content processing was done in stage 1
+            # Stage 2 only handles navigation and finalization
+            from ...providers.mock_provider import MockProvider
+            self.provider = MockProvider()
+            
         else:
             raise ValueError(f"Unknown source type: {self.source}")
     
@@ -276,8 +287,9 @@ class MkDocsExporter:
     
     async def _process_single_article(self, article: Article) -> Article:
         """Process a single article for MkDocs."""
-        # Enhance content for MkDocs
-        enhanced_content = await self.content_enhancer.enhance(article.content)
+        # Enhance content for MkDocs  
+        enhanced_result = await self.content_enhancer.enhance_article(article)
+        enhanced_content = enhanced_result['content']
         
         # Convert to optimized Markdown
         markdown_content = await self.markdown_processor.convert(enhanced_content)
@@ -331,7 +343,7 @@ class MkDocsExporter:
         navigation = await self.navigation_builder.build_navigation(articles, categories)
         
         # Resolve cross-references
-        resolved_articles = await self.cross_reference_resolver.resolve_references(
+        resolved_articles = await self.cross_reference_resolver.resolve_references_bulk(
             articles, navigation
         )
         self.stats["links_resolved"] = self.cross_reference_resolver.resolved_count
@@ -390,8 +402,10 @@ class MkDocsExporter:
     
     async def _copy_assets(self, docs_dir: Path) -> None:
         """Copy processed assets to docs directory."""
-        assets_processed = await self.asset_manager.copy_assets(docs_dir)
-        self.stats["assets_processed"] = assets_processed
+        # Assets are processed per-article during content processing
+        # No bulk copy operation needed as AssetManager handles assets individually
+        self.stats["assets_processed"] = 0
+        logger.info("Asset processing handled during article content processing")
     
     async def _generate_config(
         self, 

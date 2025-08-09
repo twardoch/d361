@@ -156,6 +156,28 @@ class MockProvider:
         """
         await self._simulate_operation()
         return self._mock_project
+    
+    async def get_articles(self, **kwargs: Any) -> list[Article]:
+        """Get all articles from mock data (MkDocsExporter interface).
+        
+        Args:
+            **kwargs: Additional parameters
+            
+        Returns:
+            list[Article]: All mock articles
+        """
+        return await self.list_articles(**kwargs)
+    
+    async def get_categories(self, **kwargs: Any) -> list[Category]:
+        """Get all categories from mock data (MkDocsExporter interface).
+        
+        Args:
+            **kwargs: Additional parameters
+            
+        Returns:
+            list[Category]: All mock categories
+        """
+        return await self.list_categories(**kwargs)
         
     def _generate_mock_articles(self) -> list[Article]:
         """Generate mock article data."""

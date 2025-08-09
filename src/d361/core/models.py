@@ -83,6 +83,7 @@ class Article(BaseModel):
     version_id: Union[int, str, None] = Field(None, description="Version identifier (integer or UUID string)")
     language_code: str = Field("en", description="Content language code")
     is_public: bool = Field(True, description="Whether article is publicly accessible")
+    is_hidden: bool = Field(False, description="Whether article is hidden from navigation")
     
     # Additional metadata and custom fields
     metadata: dict[str, Any] = Field(default_factory=dict, description="Custom metadata")

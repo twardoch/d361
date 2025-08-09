@@ -149,6 +149,9 @@ class CrossReferenceResolver:
         self._validation_cache: Dict[str, Dict[str, Any]] = {}  # URL -> validation results
         self._suggestion_cache: Dict[str, List[Dict[str, Any]]] = {}  # Article ID -> suggestions
         
+        # Statistics tracking
+        self.resolved_count: int = 0
+        
         # HTTP client for validation
         self._http_client: Optional[httpx.AsyncClient] = None
         if self.enable_http_validation:
@@ -245,6 +248,64 @@ class CrossReferenceResolver:
             'analytics_data': self._get_analytics_summary(resolved_links),
             'reference_graph': self._get_reference_graph_data(current_article),
         }
+    
+    async def resolve_references_bulk(self, articles: List[Article], navigation: Dict[str, Any]) -> List[Article]:
+        """Resolve cross-references for multiple articles using navigation context.
+        
+        Args:
+            articles: List of articles to process
+            navigation: Navigation structure for context
+            
+        Returns:
+            List of articles with resolved cross-references
+        """
+        logger.info(f"Resolving cross-references for {len(articles)} articles")
+        
+        resolved_articles = []
+        
+        for article in articles:
+            try:
+                # Use existing single-article resolution method
+                resolution_result = await self.resolve_references(article.content or "", article)
+                
+                # Create updated article with resolved content
+                updated_article = Article(
+                    id=article.id,
+                    title=article.title,
+                    content=resolution_result['content'],
+                    category_id=article.category_id,
+                    slug=article.slug or "",
+                    order=article.order,
+                    status=article.status,
+                    created_at=article.created_at,
+                    updated_at=article.updated_at,
+                    published_at=article.published_at,
+                    author_id=article.author_id,
+                    author_name=article.author_name or "",
+                    author_email=article.author_email or "",
+                    meta_title=article.meta_title or "",
+                    meta_description=article.meta_description or "",
+                    tags=article.tags or [],
+                    version_id=article.version_id,
+                    language_code=article.language_code or "en",
+                    is_public=article.is_public,
+                    is_hidden=article.is_hidden,
+                    metadata=article.metadata or {},
+                    custom_fields=article.custom_fields or {},
+                    content_markdown=article.content_markdown or "",
+                    excerpt=article.excerpt or ""
+                )
+                
+                resolved_articles.append(updated_article)
+                self.resolved_count += 1
+                
+            except Exception as e:
+                logger.error(f"Error resolving references for article {article.id}: {e}")
+                # Add original article if resolution fails
+                resolved_articles.append(article)
+        
+        logger.info(f"Resolved cross-references for {len(resolved_articles)} articles")
+        return resolved_articles
     
     def generate_link_report(self) -> Dict[str, Any]:
         """Generate comprehensive link analysis report.
