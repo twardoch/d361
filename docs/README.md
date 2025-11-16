@@ -1,24 +1,24 @@
 # Markdown Summarizer
 
-This tool splits a Markdown file at H2 headings and summarizes each section using an LLM.
+A tool that splits Markdown files at H2 headings and summarizes each section using an LLM.
 
 ## 1. Features
 
-- Splits Markdown documents at H2 headings
-- Summarizes each section using LLM
-- Preserves key information and technical details
-- Outputs a new Markdown file with summaries
-- Supports multiple LLM providers with fallback options
-- Progress tracking with rich console output
-- Resumable processing with intermediate JSON storage
+- Splits Markdown documents at H2 headings  
+- Summarizes each section with an LLM  
+- Preserves key information and technical details  
+- Outputs a new Markdown file containing the summaries  
+- Supports multiple LLM providers with automatic fallback  
+- Tracks progress via console output  
+- Saves intermediate results to resume processing if interrupted  
 
 ## 2. Usage
 
-The tool provides three separate commands for a flexible workflow:
+The tool is broken into three commands for flexible workflows:
 
 ### 2.1. Load Command
 
-Splits a Markdown file at H2 headings and saves the sections to a JSON file:
+Splits a Markdown file into sections (at H2 headings) and saves them to a JSON file:
 
 ```bash
 # Basic usage
@@ -33,7 +33,7 @@ python summarize.py load input.md --verbose
 
 ### 2.2. Process Command
 
-Processes the JSON file, summarizing each section and saving progress after each section:
+Processes the JSON file, generating summaries for each section and saving progress after each:
 
 ```bash
 # Basic usage
@@ -48,7 +48,7 @@ python summarize.py process sections.json --verbose
 
 ### 2.3. Save Command
 
-Converts the processed JSON file back to a Markdown file with summaries:
+Converts the processed JSON back into a summarized Markdown file:
 
 ```bash
 # Basic usage
@@ -63,7 +63,7 @@ python summarize.py save sections.json --verbose
 
 ### 2.4. All-in-One Command
 
-Run the entire workflow in one command:
+Runs all steps in sequence:
 
 ```bash
 # Basic usage
@@ -78,7 +78,7 @@ python summarize.py all input.md --verbose
 
 ### 2.5. Using with uv
 
-The script includes a uv run header, so you can also run it directly with uv:
+Thanks to a built-in shebang line, you can also run the script directly with `uv`:
 
 ```bash
 uv run summarize.py load input.md
@@ -86,32 +86,32 @@ uv run summarize.py load input.md
 
 ## 3. Workflow Benefits
 
-This three-step workflow provides several advantages:
+Splitting the process into steps helps with:
 
-1. **Resumable Processing**: If summarization is interrupted, you can restart from where you left off
-2. **Selective Reprocessing**: You can edit the JSON file to clear specific summaries for reprocessing
-3. **Progress Tracking**: The JSON file serves as a checkpoint for long-running processes
-4. **Flexible Output**: You can modify the JSON before generating the final Markdown
+1. **Resumable runs**: If something crashes, pick up where you left off  
+2. **Selective edits**: Manually clear individual summaries in the JSON to reprocess only those  
+3. **Progress tracking**: JSON acts as a checkpoint during long jobs  
+4. **Output control**: Tweak the JSON before generating the final Markdown  
 
 ## 4. LLM Support
 
-The script uses the `llm` library to interact with various LLM providers. It will try the following models in order:
+Uses the `llm` library to connect to various providers. Tries these models in order:
 
-1. `gpt-4o-mini` (OpenAI)
-2. `openrouter/google/gemini-flash-1.5`
-3. `openrouter/openai/gpt-4o-mini`
-4. `haiku` (Claude 3 Haiku)
+1. `gpt-4o-mini` (OpenAI)  
+2. `openrouter/google/gemini-flash-1.5`  
+3. `openrouter/openai/gpt-4o-mini`  
+4. `haiku` (Claude 3 Haiku)  
 
-You can specify a different model using the `--model` parameter.
+Override the default with the `--model` flag.
 
 ## 5. Requirements
 
-- Python 3.9+
-- Dependencies: fire, rich, llm, tenacity, pathos
+- Python 3.9+  
+- Dependencies: fire, rich, llm, tenacity, pathos  
 
 ## 6. Example
 
-If you have a Markdown file like:
+Input:
 
 ```markdown
 # My Document
@@ -126,4 +126,15 @@ This is the first section with important details.
 This is the second section with more information.
 ```
 
-Running the summarizer will create a new file with summaries of each section, preserving the H2 headings. 
+Output:
+
+```markdown
+# My Document
+
+## 7. Introduction
+Summary of the introduction...
+
+## 8. Section 1
+Summary of section 1...
+
+## 

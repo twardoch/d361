@@ -2,7 +2,7 @@
 
 **Document360 → MkDocs Export System**
 
-The d361 MkDocs export system provides comprehensive conversion capabilities from Document360 archives or API data to modern MkDocs documentation sites, with full support for Material theme, popular plugins, and advanced features.
+The d361 MkDocs export system converts Document360 archives or API data to modern MkDocs documentation sites, supporting Material theme, popular plugins, and advanced features.
 
 ## Table of Contents
 
@@ -20,26 +20,26 @@ The d361 MkDocs export system provides comprehensive conversion capabilities fro
 
 ## Overview
 
-The MkDocs export system is built on a modular architecture that processes Document360 content through multiple specialized components:
+The MkDocs export system processes Document360 content through multiple specialized components:
 
 ### Core Components
 
 - **MkDocsExporter**: Main orchestrator for the complete export process
 - **ConfigGenerator**: Dynamic MkDocs YAML configuration generation with template support
-- **NavigationBuilder**: Intelligent navigation structure creation from Document360 hierarchy
+- **NavigationBuilder**: Navigation structure creation from Document360 hierarchy
 - **ContentEnhancer**: Content optimization with frontmatter, quality assessment, and SEO
 - **AssetManager**: Image processing, CDN optimization, and responsive asset handling
 - **CrossReferenceResolver**: Internal link resolution and validation
 
 ### Supported Features
 
-- ✅ **Archive and API Sources**: Works with Document360 archives (.zip) and live API
-- ✅ **Modern Themes**: Full Material for MkDocs integration with all features
-- ✅ **Popular Plugins**: autorefs, section-index, redirects, social cards, minify
-- ✅ **Advanced Markdown**: SuperFences, tabbed content, admonitions, math expressions
-- ✅ **Performance**: Parallel processing, intelligent caching, optimization
-- ✅ **Quality Control**: Content validation, broken link detection, SEO optimization
-- ✅ **Template System**: Jinja2 templates for complete customization
+- Archive and API Sources: Works with Document360 archives (.zip) and live API
+- Modern Themes: Full Material for MkDocs integration with all features
+- Popular Plugins: autorefs, section-index, redirects, social cards, minify
+- Advanced Markdown: SuperFences, tabbed content, admonitions, math expressions
+- Performance: Parallel processing, intelligent caching, optimization
+- Quality Control: Content validation, broken link detection, SEO optimization
+- Template System: Jinja2 templates for customization
 
 ## Quick Start
 
@@ -65,14 +65,14 @@ async def export_documentation():
     
     # Check results
     if results["success"]:
-        print(f"✅ Export successful!")
-        print(f"📁 Output: {results['output_path']}")
-        print(f"⚙️ Config: {results['config_path']}")
-        print(f"📊 Processed {results['statistics']['articles_processed']} articles")
+        print(f"Export successful!")
+        print(f"Output: {results['output_path']}")
+        print(f"Config: {results['config_path']}")
+        print(f"Processed {results['statistics']['articles_processed']} articles")
     else:
-        print("❌ Export failed")
+        print("Export failed")
         for error in results["validation"]["errors"]:
-            print(f"   Error: {error}")
+            print(f"Error: {error}")
 
 # Run the export
 asyncio.run(export_documentation())
@@ -103,7 +103,7 @@ async def export_hybrid():
         api_token="your-api-token",
         output_path=Path("hybrid_site"),
         theme="material",
-        parallel_processing=True,  # Enable for faster processing
+        parallel_processing=True,
         max_workers=6
     )
     
@@ -113,23 +113,23 @@ async def export_hybrid():
 
 ### Generated Directory Structure
 
-After export, you'll have a complete MkDocs project:
+After export:
 
 ```
 mkdocs_site/
-├── mkdocs.yml              # Generated configuration
-├── docs/                   # Markdown content
-│   ├── index.md           # Homepage
-│   ├── guides/            # Organized by categories
+├── mkdocs.yml
+├── docs/
+│   ├── index.md
+│   ├── guides/
 │   │   ├── index.md
 │   │   ├── getting-started.md
 │   │   └── advanced-guide.md
 │   ├── reference/
 │   │   └── api-docs.md
-│   └── assets/            # Processed images and files
+│   └── assets/
 │       ├── images/
 │       └── stylesheets/
-└── site/                  # Built site (after mkdocs build)
+└── site/
 ```
 
 ## Configuration
@@ -146,7 +146,7 @@ exporter = MkDocsExporter(
     
     # Output Configuration  
     output_path=Path("output"),          # Output directory
-    theme="material",                    # MkDocs theme ("material", "readthedocs", etc.)
+    theme="material",                    # MkDocs theme
     enable_plugins=True,                 # Enable popular MkDocs plugins
     
     # Performance Configuration
@@ -215,7 +215,7 @@ if not validation_results["valid"]:
 #### Material Theme
 
 ```python
-# Material theme with all features
+# Material theme configuration
 material_context = {
     "site_name": "Material Documentation",
     "site_url": "https://docs.example.com",
@@ -230,13 +230,13 @@ material_context = {
     "code_font": "Roboto Mono",
     
     # Features
-    "enable_tabs": True,             # Navigation tabs
-    "enable_instant": True,          # Instant navigation
-    "enable_social_cards": True,     # Social media cards
-    "enable_feedback": True,         # Page feedback system
+    "enable_tabs": True,
+    "enable_instant": True,
+    "enable_social_cards": True,
+    "enable_feedback": True,
     
     # Search
-    "enable_offline_search": True,   # Offline search capability
+    "enable_offline_search": True,
     
     # Analytics
     "analytics": {
@@ -267,11 +267,11 @@ rtd_context = {
 
 ## Templates
 
-The system includes three main Jinja2 templates for different use cases:
+The system includes three main Jinja2 templates:
 
 ### 1. Base Template (`mkdocs_base.yml.j2`)
 
-Basic MkDocs configuration suitable for any theme:
+Basic MkDocs configuration:
 
 ```yaml
 # Example usage
@@ -289,7 +289,7 @@ await generator.generate_config_from_template(
 
 ### 2. Material Theme Template (`material_theme.yml.j2`)
 
-Comprehensive Material theme configuration with all features:
+Comprehensive Material theme configuration:
 
 ```yaml
 # Full Material theme example
@@ -314,7 +314,7 @@ material_config = await generator.generate_config_from_template(
 
 ### 3. Plugin Configuration Template (`plugin_configs.yml.j2`)
 
-Focused on plugin configuration and advanced features:
+Plugin configuration focused:
 
 ```yaml
 plugin_config = await generator.generate_config_from_template(
@@ -334,7 +334,7 @@ plugin_config = await generator.generate_config_from_template(
 
 ### Custom Templates
 
-Create your own templates for specialized use cases:
+Create templates for specialized use cases:
 
 ```yaml
 # custom_enterprise.yml.j2
@@ -447,7 +447,7 @@ def example():
 
 ### Quality Assessment
 
-The system provides comprehensive quality metrics:
+The system provides quality metrics:
 
 ```python
 quality_metrics = {
@@ -478,7 +478,7 @@ manager = AssetManager(
     image_quality=85,
     convert_to_webp=True,
     enable_lazy_loading=True,
-    download_external_assets=True  # Download and localize external assets
+    download_external_assets=True
 )
 
 # Process assets in content
@@ -490,10 +490,10 @@ assets_copied = await manager.copy_assets(docs_dir)
 
 ### Supported Asset Types
 
-- **Images**: PNG, JPG, WebP, GIF, SVG
-- **Documents**: PDF, DOCX, XLSX
-- **Code**: JSON, XML, CSV
-- **Media**: MP4, WebM (with appropriate player integration)
+- Images: PNG, JPG, WebP, GIF, SVG
+- Documents: PDF, DOCX, XLSX
+- Code: JSON, XML, CSV
+- Media: MP4, WebM
 
 ### CDN Optimization
 
@@ -539,7 +539,7 @@ navigation = await builder.build_navigation(articles, categories)
 
 ### Hierarchical Categories
 
-The system automatically handles nested categories:
+The system handles nested categories:
 
 ```python
 # Document360 categories
@@ -595,13 +595,13 @@ print(f"Warnings: {len(validation_results['warnings'])}")
 print(f"Suggestions: {len(validation_results['suggestions'])}")
 
 for error in validation_results['errors']:
-    print(f"❌ {error}")
+    print(f"{error}")
 
 for warning in validation_results['warnings']:
-    print(f"⚠️ {warning}")
+    print(f"{warning}")
 
 for suggestion in validation_results['suggestions']:
-    print(f"💡 {suggestion}")
+    print(f"{suggestion}")
 ```
 
 ### Performance Optimization
@@ -613,7 +613,7 @@ exporter = MkDocsExporter(
     archive_path=large_archive,
     output_path=output_dir,
     parallel_processing=True,
-    max_workers=8  # Adjust based on system capabilities
+    max_workers=8
 )
 
 # Monitor performance
@@ -633,16 +633,16 @@ print(f"Content processing: {performance_metrics['content_processing']}s")
 
 ```python
 MkDocsExporter(
-    source: str = "archive",                    # Data source type
-    archive_path: Optional[Path] = None,        # Archive file path
-    api_token: Optional[str] = None,            # API token
-    api_base_url: Optional[str] = None,         # API base URL
-    output_path: Path = Path("mkdocs_output"),  # Output directory
-    theme: str = "material",                    # MkDocs theme
-    enable_plugins: bool = True,                # Enable plugins
-    parallel_processing: bool = True,           # Parallel processing
-    max_workers: int = 4,                       # Worker threads
-    config_path: Optional[Path] = None          # Configuration file
+    source: str = "archive",
+    archive_path: Optional[Path] = None,
+    api_token: Optional[str] = None,
+    api_base_url: Optional[str] = None,
+    output_path: Path = Path("mkdocs_output"),
+    theme: str = "material",
+    enable_plugins: bool = True,
+    parallel_processing: bool = True,
+    max_workers: int = 4,
+    config_path: Optional[Path] = None
 )
 ```
 
@@ -665,9 +665,9 @@ async def _validate_export() -> Dict[str, Any]:
 
 ```python
 ConfigGenerator(
-    theme: str = "material",                    # Theme name
-    enable_plugins: bool = True,                # Enable plugins
-    template_dir: Optional[Path] = None         # Custom template directory
+    theme: str = "material",
+    enable_plugins: bool = True,
+    template_dir: Optional[Path] = None
 )
 ```
 
@@ -699,12 +699,12 @@ def validate_final_config(config_yaml: str) -> Dict[str, Any]:
 
 ```python
 ContentEnhancer(
-    site_url: Optional[str] = None,             # Site base URL
-    enable_seo: bool = True,                    # SEO metadata
-    validate_links: bool = True,                # Link validation
-    add_edit_links: bool = True,                # Edit links
-    enable_social_cards: bool = False,          # Social cards
-    custom_css_classes: Optional[Dict] = None   # Custom CSS classes
+    site_url: Optional[str] = None,
+    enable_seo: bool = True,
+    validate_links: bool = True,
+    add_edit_links: bool = True,
+    enable_social_cards: bool = False,
+    custom_css_classes: Optional[Dict] = None
 )
 ```
 
@@ -737,20 +737,17 @@ async def enterprise_documentation_setup():
         "repo_url": "https://github.com/company/docs",
         "copyright": "Copyright &copy; 2025 Company Inc.",
         
-        # Enterprise theme
         "primary_color": "blue grey",
-        "accent_color": "deep orange", 
+        "accent_color": "deep orange",
         "color_scheme": "auto",
         "logo": "assets/company-logo.svg",
         "favicon": "assets/favicon.ico",
         
-        # Advanced features
         "enable_social_cards": True,
         "enable_feedback": True,
         "enable_tags": True,
         "enable_offline_search": True,
         
-        # Analytics and monitoring
         "analytics": {
             "provider": "google",
             "property": "G-COMPANY123",
@@ -763,14 +760,12 @@ async def enterprise_documentation_setup():
             }
         },
         
-        # Social links
         "social": [
             {"icon": "fontawesome/brands/github", "link": "https://github.com/company"},
             {"icon": "fontawesome/brands/linkedin", "link": "https://linkedin.com/company/company"},
             {"icon": "fontawesome/solid/envelope", "link": "mailto:docs@company.com"}
         ],
         
-        # Custom navigation
         "navigation": [
             {"Home": "index.md"},
             {
@@ -813,7 +808,7 @@ async def enterprise_documentation_setup():
     
     # Step 2: Set up exporter with enterprise configuration
     exporter = MkDocsExporter(
-        source="hybrid",  # Use both archive and API
+        source="hybrid",
         archive_path=Path("enterprise-docs-archive.zip"),
         api_token="your-enterprise-api-token",
         output_path=Path("enterprise_docs_site"),
@@ -824,12 +819,12 @@ async def enterprise_documentation_setup():
     )
     
     # Step 3: Run export
-    print("🚀 Starting enterprise documentation export...")
+    print("Starting enterprise documentation export...")
     results = await exporter.export()
     
     # Step 4: Generate custom configuration
     if results["success"]:
-        print("✅ Basic export completed successfully!")
+        print("Basic export completed successfully!")
         
         # Generate enterprise configuration
         enterprise_config = await generator.generate_config_from_template(
@@ -841,8 +836,8 @@ async def enterprise_documentation_setup():
         config_path = Path(results["output_path"]) / "mkdocs-enterprise.yml"
         config_path.write_text(enterprise_config)
         
-        print(f"📋 Enterprise configuration saved: {config_path}")
-        print(f"📊 Statistics:")
+        print(f"Enterprise configuration saved: {config_path}")
+        print(f"Statistics:")
         print(f"   Articles: {results['statistics']['articles_processed']}")
         print(f"   Categories: {results['statistics']['categories_processed']}")
         print(f"   Assets: {results['statistics']['assets_processed']}")
@@ -851,17 +846,17 @@ async def enterprise_documentation_setup():
         # Validation report
         validation = results["validation"]
         if validation["errors"]:
-            print("⚠️ Validation issues found:")
+            print("Validation issues found:")
             for error in validation["errors"]:
-                print(f"   ❌ {error}")
+                print(f"   {error}")
         
         if validation["warnings"]:
-            print("💡 Suggestions:")
+            print("Suggestions:")
             for warning in validation["warnings"]:
-                print(f"   💭 {warning}")
+                print(f"   {warning}")
     
     else:
-        print("❌ Export failed!")
+        print("Export failed!")
         for error in results["validation"]["errors"]:
             print(f"   Error: {error}")
     
@@ -905,7 +900,7 @@ async def multi_site_documentation():
     results = {}
     
     for site_type, config in sites.items():
-        print(f"🔄 Generating {site_type} documentation...")
+        print(f"Generating {site_type} documentation...")
         
         exporter = MkDocsExporter(
             source="archive",
@@ -918,9 +913,9 @@ async def multi_site_documentation():
         results[site_type] = result
         
         if result["success"]:
-            print(f"✅ {site_type.title()} site generated successfully")
+            print(f"{site_type.title()} site generated successfully")
         else:
-            print(f"❌ {site_type.title()} site generation failed")
+            print(f"{site_type.title()} site generation failed")
     
     return results
 ```
@@ -966,7 +961,7 @@ manager = AssetManager(
 # Solution: Enable parallel processing
 exporter = MkDocsExporter(
     parallel_processing=True,
-    max_workers=8  # Increase workers
+    max_workers=8
 )
 ```
 
@@ -1022,12 +1017,12 @@ def validate_export_results(results):
     
     # Report issues
     if issues:
-        print("❌ Validation issues found:")
+        print("Validation issues found:")
         for issue in issues:
             print(f"   - {issue}")
         return False
     else:
-        print("✅ Export validation passed")
+        print("Export validation passed")
         return True
 ```
 
@@ -1035,9 +1030,9 @@ def validate_export_results(results):
 
 **Need Help?**
 
-- 📚 [API Reference](#api-reference)
-- 🐛 [Report Issues](https://github.com/d361/issues)
-- 💬 [Community Support](https://discord.gg/d361)
-- 📧 [Contact Support](mailto:support@d361.com)
+- [API Reference](#api-reference)
+- [Report Issues](https://github.com/d361/issues)
+- [Community Support](https://discord.gg/d361)
+- [Contact Support](mailto:support@d361.com)
 
-This documentation covers the comprehensive MkDocs export capabilities of d361. For the latest updates and additional examples, check the official repository and documentation site.
+This documentation covers the MkDocs export capabilities of d361. For updates and examples, check the official repository.

@@ -1,6 +1,6 @@
 # Development Guide
 
-This document provides detailed instructions for developing, testing, and releasing the d361 project.
+This document explains how to set up, build, test, and release the d361 project.
 
 ## Table of Contents
 
@@ -16,31 +16,31 @@ This document provides detailed instructions for developing, testing, and releas
 
 ### Prerequisites
 
-- Python 3.10+ (3.12 recommended)
-- [uv](https://github.com/astral-sh/uv) (fast Python package installer)
-- [hatch](https://hatch.pypa.io/) (project management)
+- Python 3.10 or newer (3.12 recommended)
+- [uv](https://github.com/astral-sh/uv) – fast Python package installer
+- [hatch](https://hatch.pypa.io/) – project management tool
 - Git
 
 ### Quick Setup
 
 ```bash
-# Clone the repository
+# Clone the repo
 git clone https://github.com/twardoch/d361.git
 cd d361
 
-# Install uv if not already installed
+# Install uv if missing
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install hatch
 uv pip install hatch
 
-# Activate development environment
+# Activate dev environment
 hatch shell
 
 # Install Playwright browsers
 playwright install chromium
 
-# Run tests to verify setup
+# Run tests to confirm setup
 hatch run test:test
 ```
 
@@ -48,68 +48,68 @@ hatch run test:test
 
 ### Local Build Scripts
 
-The project includes convenient build scripts in the `scripts/` directory:
+The `scripts/` directory contains useful automation tools:
 
 #### Build Script (`scripts/build.sh`)
 
 ```bash
-# Full build with all checks
+# Full build with checks
 ./scripts/build.sh
 
-# Quick build (skip tests and quality checks)
+# Quick build (skip tests and linting)
 ./scripts/build.sh --quick
 
-# Clean build artifacts
+# Clean previous builds
 ./scripts/build.sh --clean
 
-# Show help
+# Show options
 ./scripts/build.sh --help
 ```
 
 #### Test Script (`scripts/test.sh`)
 
 ```bash
-# Run all tests
+# All tests
 ./scripts/test.sh
 
-# Quick test (unit tests only)
+# Unit tests only
 ./scripts/test.sh --quick
 
-# Run with integration tests
+# Include integration tests
 ./scripts/test.sh --integration
 
 # Install Playwright browsers
 ./scripts/test.sh --install-browsers
 
-# Fix linting issues
+# Auto-fix lint issues
 ./scripts/test.sh --fix
 ```
 
 #### Release Script (`scripts/release.sh`)
 
 ```bash
-# Create a new release
+# Tag and release version 1.0.0
 ./scripts/release.sh --version 1.0.0
 
-# Dry run (publish to test PyPI)
+# Dry run using Test PyPI
 ./scripts/release.sh --version 1.0.0 --dry-run
 
-# Skip certain steps
+# Skip steps like testing or GitHub actions
 ./scripts/release.sh --version 1.0.0 --skip-tests --skip-github
 ```
 
 ### Hatch Commands
 
-The project uses Hatch for environment management:
+Hatch handles virtual environments and tasks:
 
 ```bash
-# Run tests with coverage
+# Run tests with coverage report
 hatch run test:test-cov
 
-# Run linting and formatting
+# Lint and format code
 hatch run lint:fix
 
-# Run type checking
+# Type check
 hatch run lint:typing
 
 # Run all quality checks
@@ -131,14 +131,14 @@ tests/
 │   ├── test_parser.py        # Sitemap parsing tests
 │   ├── test_content.py       # Content extraction tests
 │   ├── test_navigation.py    # Navigation extraction tests
-│   └── test_integration.py   # Integration tests
+│   └── test_integration.py  # Integration tests
 ```
 
 ### Test Categories
 
-- **Unit Tests**: Test individual components in isolation
-- **Integration Tests**: Test component interactions
-- **End-to-End Tests**: Test complete workflows
+- **Unit Tests** – Test single components
+- **Integration Tests** – Test component interactions
+- **End-to-End Tests** – Test full workflows
 
 ### Running Tests
 
@@ -146,22 +146,22 @@ tests/
 # Run all tests
 hatch run test:test
 
-# Run with coverage
+# With coverage
 hatch run test:test-cov
 
-# Run specific test file
+# Specific file
 hatch run test:test tests/offline/test_parser.py
 
-# Run tests matching pattern
+# Match pattern
 hatch run test:test -k "test_navigation"
 
-# Run tests with verbose output
+# Verbose output
 hatch run test:test -v
 ```
 
 ### Test Configuration
 
-Tests are configured in `pyproject.toml`:
+Defined in `pyproject.toml`:
 
 ```toml
 [tool.pytest.ini_options]
@@ -180,54 +180,47 @@ markers = [
 
 ### Semantic Versioning
 
-The project uses [Semantic Versioning](https://semver.org/):
+We follow [Semantic Versioning](https://semver.org/):
 
-- **MAJOR**: Incompatible API changes
-- **MINOR**: New functionality (backward compatible)
-- **PATCH**: Bug fixes (backward compatible)
+- **MAJOR** – Breaking changes
+- **MINOR** – New features (backward compatible)
+- **PATCH** – Bug fixes (backward compatible)
 
 ### Version Management
 
-Versions are managed through Git tags using `hatch-vcs`:
+Versions come from Git tags via `hatch-vcs`:
 
-- Version is automatically derived from Git tags
-- Use `v` prefix for tags (e.g., `v1.0.0`)
-- Pre-release versions supported (e.g., `v1.0.0-alpha.1`)
+- Tag format: `v1.0.0`, `v1.0.0-alpha.1`
+- No manual version strings in source
 
 ### Release Steps
 
 1. **Prepare Release**
    ```bash
-   # Ensure you're on main branch
    git checkout main
    git pull origin main
-   
-   # Run full test suite
    ./scripts/test.sh
-   
-   # Run build
    ./scripts/build.sh
    ```
 
 2. **Create Release**
    ```bash
-   # Create and push tag (triggers CI/CD)
    ./scripts/release.sh --version 1.0.0
    ```
 
 3. **Verify Release**
-   - Check GitHub Actions workflow
-   - Verify PyPI package
+   - Check GitHub Actions
+   - Confirm PyPI upload
    - Test binary downloads
-   - Verify GitHub release
+   - Review GitHub release
 
 ### Pre-release Testing
 
 ```bash
-# Test with dry run
+# Dry run to Test PyPI
 ./scripts/release.sh --version 1.0.0-beta.1 --dry-run
 
-# Test specific PyPI installation
+# Install from Test PyPI
 pip install --index-url https://test.pypi.org/simple/ d361==1.0.0-beta.1
 ```
 
@@ -237,42 +230,40 @@ pip install --index-url https://test.pypi.org/simple/ d361==1.0.0-beta.1
 
 #### Push Workflow (`.github/workflows/push.yml`)
 
-Runs on every push to `main` and pull requests:
+Triggers on every push to `main` or PR:
 
-- **Code Quality**: Linting, formatting
-- **Type Checking**: MyPy static analysis
-- **Multi-platform Testing**: Ubuntu, Windows, macOS
-- **Multi-version Testing**: Python 3.10, 3.11, 3.12
-- **Build Verification**: Package building
-- **Installation Testing**: Verify package installation
+- Code quality checks (lint, format)
+- Type checking with MyPy
+- Tests on Ubuntu, Windows, macOS
+- Python 3.10–3.12 support
+- Build verification
+- Installation test
 
 #### Release Workflow (`.github/workflows/release.yml`)
 
-Runs on Git tag pushes (`v*`):
+Triggers on tag push (`v*`):
 
-- **Full Testing**: All platforms and Python versions
-- **Package Building**: Source and wheel distributions
-- **Binary Building**: PyInstaller executables for all platforms
-- **PyPI Publishing**: Automatic package publishing
-- **GitHub Release**: Automated release with binaries
-- **Post-release Testing**: Verify installation from PyPI
+- Full test matrix
+- Source and wheel builds
+- PyInstaller binaries for all platforms
+- PyPI publish
+- GitHub release with assets
+- Post-release install test
 
 ### Workflow Features
 
-- **Concurrency Control**: Cancels outdated runs
-- **Artifact Management**: Preserves build artifacts
-- **Matrix Testing**: Comprehensive platform/version coverage
-- **Caching**: Speeds up builds with UV caching
-- **Security**: Uses trusted actions and proper permissions
+- Cancels outdated runs
+- Caches dependencies using UV
+- Matrix testing across OS and Python versions
+- Secure action permissions
 
 ## Binary Distribution
 
 ### PyInstaller Configuration
 
-The project creates standalone executables using PyInstaller:
+Standalone executables built with PyInstaller:
 
 ```bash
-# Manual binary creation
 pyinstaller --onefile --name d361-offline-linux \
     --add-data "src/d361/offline/d361_offline.css:d361/offline" \
     src/d361/offline/__main__.py
@@ -282,9 +273,9 @@ pyinstaller --onefile --name d361-offline-linux \
 
 Each release includes:
 
-- **Linux**: `d361-offline-ubuntu-latest`
-- **Windows**: `d361-offline-windows-latest.exe`
-- **macOS**: `d361-offline-macos-latest`
+- Linux: `d361-offline-ubuntu-latest`
+- Windows: `d361-offline-windows-latest.exe`
+- macOS: `d361-offline-macos-latest`
 
 ### Usage
 
@@ -303,10 +294,9 @@ chmod +x d361-offline
 
 ### Code Quality
 
-- **Linting**: Use Ruff for fast linting
-- **Formatting**: Use Ruff for consistent formatting
-- **Type Checking**: Use MyPy for static type analysis
-- **Testing**: Maintain high test coverage
+- Use Ruff for linting and formatting
+- Use MyPy for type checking
+- Keep test coverage high
 
 ### Development Workflow
 
@@ -324,10 +314,7 @@ chmod +x d361-offline
 3. **Develop and Test**
    ```bash
    # Make changes
-   # Run tests
    ./scripts/test.sh
-   
-   # Run build
    ./scripts/build.sh
    ```
 
@@ -339,17 +326,17 @@ chmod +x d361-offline
    ```
 
 5. **Create Pull Request**
-   - Submit PR against `main` branch
-   - Include clear description
-   - Ensure all CI checks pass
+   - Target `main` branch
+   - Describe changes clearly
+   - Ensure CI passes
 
 ### Code Standards
 
-- Follow PEP 8 style guide
-- Use type hints for all functions
-- Write docstrings for public APIs
-- Include tests for new functionality
-- Update documentation as needed
+- Follow PEP 8
+- Add type hints everywhere
+- Write docstrings for public functions
+- Include tests for new code
+- Update docs when needed
 
 ### Commit Messages
 
@@ -369,37 +356,31 @@ refactor: improve code structure
 
 1. **Playwright Browser Issues**
    ```bash
-   # Reinstall browsers
    playwright install chromium
    ```
 
 2. **Build Failures**
    ```bash
-   # Clean and rebuild
    ./scripts/build.sh --clean
    ./scripts/build.sh
    ```
 
 3. **Test Failures**
    ```bash
-   # Run specific test
    hatch run test:test tests/offline/test_parser.py -v
    ```
 
 4. **Version Issues**
    ```bash
-   # Check current version
    git describe --tags --abbrev=0
-   
-   # Verify hatch-vcs
    hatch version
    ```
 
 ### Getting Help
 
-- **Issues**: [GitHub Issues](https://github.com/twardoch/d361/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/twardoch/d361/discussions)
-- **Documentation**: [README.md](README.md)
+- [GitHub Issues](https://github.com/twardoch/d361/issues)
+- [GitHub Discussions](https://github.com/twardoch/d361/discussions)
+- [README.md](README.md)
 
 ## Resources
 

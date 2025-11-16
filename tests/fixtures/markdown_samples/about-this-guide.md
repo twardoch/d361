@@ -7,10 +7,10 @@
 ## contentType: Markdown 
 ## Metadata_End
 
-This user guide is updated continuously. Everybody should read the interface overview article, particularly to learn about how to manipulate FontLab’s panels and dialogs, and how we differentiate between tapping versus holding keys for tools keyboard shortcuts.
+This user guide is updated continuously. Everyone should read the interface overview article, especially to learn how to manipulate FontLab's panels and dialogs, and understand the difference between tapping and holding keys for tool shortcuts.
 
-The first chapters show how to use FontLab 7. They are sorted in the best learning order, but you can use the links to consult the manual in any order. The last chapters are references that describe all tools and commnads, interface controls, and also typographic terms and technologies.
+The first chapters demonstrate FontLab 7 usage. They're organized in logical learning order, though you can navigate using the links in any sequence. The final chapters serve as references describing all tools and commands, interface controls, and typographic terms and technologies.
 
-At the end of this manual, you will find a collection of tutorials. While the core manual explains how to use FontLab 7, the tutorials show how to get given results. They explain solutions and show ideas you may be not aware of. We plan to add more tutorials.
+The manual concludes with a collection of tutorials. While the core manual explains FontLab 7 functionality, the tutorials show practical applications and techniques you might not discover on your own. We plan to expand this section with additional tutorials.
 
-Check the list of all Keyboard Shortcuts and also instructions about Customizing Shortcuts.
+See the complete list of Keyboard Shortcuts and instructions for Customizing Shortcuts.

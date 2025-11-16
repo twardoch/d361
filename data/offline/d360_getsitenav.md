@@ -1,9 +1,11 @@
-
 # d360_getsitenav
 
-Python Fire CLI tool that uses Playwright, which will: 
+Python Fire CLI tool using Playwright to:
 
-- Go to https://docs.document360.com/docs/
-- Focus on #left-panel > div.catergory-list > site-category-list-tree-view > d360-data-list-tree-view
-- Scroll all the way down and keep clicking the small triangles to recursively expand all items, and gather the links, gradually working your way upwards, until you have gathered all links from https://docs.document360.com/sitemap-en.xml (included). 
-
+- Navigate to https://docs.document360.com/docs/
+- Target the navigation panel: `#left-panel > div.catergory-list > site-category-list-tree-view > d360-data-list-tree-view`
+- Recursively expand all collapsible sections by clicking triangle icons
+- Scroll to reveal all content
+- Extract and collect all navigation links
+- Process links upward through the hierarchy until complete
+- Include links from https://docs.document360.com/s

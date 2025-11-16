@@ -26,16 +26,16 @@ uv pip install -e .
 ### Command Line Interface
 
 ```bash
-# Prepare by extracting sitemap and navigation
+# Extract sitemap and navigation
 d361-offline prep --map-url=https://docs.document360.com/sitemap-en.xml --output-dir=docs
 
-# Fetch content for all URLs found
+# Download content for all URLs
 d361-offline fetch --prep-file=docs/prep.json
 
-# Build HTML and Markdown output
+# Build HTML and Markdown files
 d361-offline build --fetch-file=docs/fetch.json
 
-# Or run all steps at once
+# Run all steps at once
 d361-offline all --map-url=https://docs.document360.com/sitemap-en.xml --output-dir=docs
 ```
 
@@ -46,7 +46,7 @@ import asyncio
 from d361_offline import D361Offline
 from d361_offline.config import Config
 
-# Create configuration
+# Configure
 config = Config(
     map_url="https://docs.document360.com/sitemap-en.xml",
     output_dir="docs"
@@ -57,19 +57,15 @@ offline = D361Offline(config)
 
 # Run the process
 async def main():
-    # Prepare
+    # Step by step
     await offline.prep()
-    
-    # Fetch
     await offline.fetch()
-    
-    # Build
     await offline.build()
     
-    # Or run all at once
+    # Or all at once
     # await offline.all()
 
-# Run asynchronously
+# Execute
 asyncio.run(main())
 ```
 
@@ -78,16 +74,16 @@ asyncio.run(main())
 | Option | Description |
 |--------|-------------|
 | `--map-url` | URL of the sitemap.xml file |
-| `--nav-url` | URL of the page to extract navigation from (if different from sitemap URLs) |
-| `--output-dir` | Output directory path (defaults to domain name in current directory) |
+| `--nav-url` | Navigation page URL (if different from sitemap URLs) |
+| `--output-dir` | Output directory (defaults to domain name) |
 | `--css-file` | Custom CSS file path |
-| `--effort` | Effort level (1-3, higher means more processing) |
-| `--max-concurrent` | Maximum number of concurrent requests |
-| `--retries` | Number of retries for failed requests |
-| `--timeout` | Timeout in seconds for page loads |
+| `--effort` | Processing level (1-3, higher = more aggressive) |
+| `--max-concurrent` | Maximum concurrent requests |
+| `--retries` | Retry attempts for failed requests |
+| `--timeout` | Page load timeout in seconds |
 | `--verbose` | Enable verbose logging |
-| `--test` | Run in test mode with limited output |
-| `--pause` | Pause between requests in seconds |
+| `--test` | Test mode with limited output |
+| `--pause` | Delay between requests in seconds |
 
 ## Development
 
@@ -109,4 +105,4 @@ ruff check --fix . && ruff format .
 
 ## License
 
-MIT 
+MIT
