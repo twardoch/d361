@@ -287,12 +287,18 @@ class MkDocsExporter:
     
     async def _process_single_article(self, article: Article) -> Article:
         """Process a single article for MkDocs."""
-        # Enhance content for MkDocs  
+        # Enhance content for MkDocs
         enhanced_result = await self.content_enhancer.enhance_article(article)
         enhanced_content = enhanced_result['content']
-        
-        # Convert to optimized Markdown
-        markdown_content = await self.markdown_processor.convert(enhanced_content)
+
+        # Convert to optimized Markdown only if needed
+        # Skip markdown processing if content is already markdown (not HTML)
+        if enhanced_result.get('has_html_conversion', False):
+            # Only process if HTML was converted to markdown
+            markdown_content = await self.markdown_processor.convert(enhanced_content)
+        else:
+            # Content is already markdown, use as-is
+            markdown_content = enhanced_content
 
         # Process assets
         asset_list = await self.asset_manager.process_assets(

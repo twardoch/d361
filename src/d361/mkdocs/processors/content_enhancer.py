@@ -163,12 +163,14 @@ class ContentEnhancer:
             Dictionary with enhanced content and metadata
         """
         logger.debug(f"Enhancing article: {article.title}")
-        
+
         raw_content = article.content or ""
-        
+        html_was_converted = False
+
         # Phase 2: Convert HTML to Markdown if needed
         if self.enable_html_conversion and self._has_html_content(raw_content):
             raw_content = await self._convert_html_to_markdown(raw_content)
+            html_was_converted = True
             logger.debug(f"Converted HTML to Markdown for article: {article.title}")
         
         # Phase 2: Process MkDocs extensions
@@ -216,7 +218,7 @@ class ContentEnhancer:
             # Phase 2 additions
             'broken_links': broken_links,
             'reading_time': reading_time,
-            'has_html_conversion': self.enable_html_conversion and self._has_html_content(article.content or ""),
+            'has_html_conversion': html_was_converted,
             'mkdocs_extensions_used': self._get_used_extensions(enhanced_content),
         }
         
@@ -543,8 +545,11 @@ class ContentEnhancer:
     # Phase 2: Advanced Enhancement Methods
     
     def _has_html_content(self, content: str) -> bool:
-        """Check if content contains HTML tags."""
-        return bool(self._html_pattern.search(content))
+        """Check if content contains HTML tags (excluding comments)."""
+        # Remove HTML comments first to avoid false positives
+        content_without_comments = re.sub(r'<!--.*?-->', '', content, flags=re.DOTALL)
+        # Check for actual HTML tags (not markdown image/link syntax)
+        return bool(self._html_pattern.search(content_without_comments))
     
     async def _convert_html_to_markdown(self, content: str) -> str:
         """Convert HTML content to Markdown using html2text."""
