@@ -270,6 +270,8 @@ class Document360Parser:
             try:
                 frontmatter, content = self._parse_markdown_file(md_file)
                 article.content_markdown = content
+                # Also populate HTML content field with markdown for compatibility
+                article.content = content
 
                 # Update article with file metadata if present
                 if frontmatter:
@@ -298,20 +300,42 @@ class Document360Parser:
             Tuple of (frontmatter_dict, content)
         """
         content = md_file.read_text(encoding='utf-8')
-        
-        # Check for YAML frontmatter
+        frontmatter_dict = {}
+
+        # Check for YAML frontmatter (standard --- delimited)
         if content.startswith('---'):
             parts = content.split('---', 2)
             if len(parts) >= 3:
                 try:
                     import yaml
-                    frontmatter = yaml.safe_load(parts[1])
+                    frontmatter_dict = yaml.safe_load(parts[1])
                     content = parts[2].strip()
-                    return frontmatter, content
                 except Exception as e:
                     logger.warning(f"Failed to parse frontmatter in {md_file}: {e}")
-        
-        return None, content
+
+        # Check for Document360 metadata format (## Metadata_Start ... ## Metadata_End)
+        if '## Metadata_Start' in content:
+            # Extract metadata block
+            metadata_pattern = r'## Metadata_Start.*?## Metadata_End\s*\n?'
+            import re
+            metadata_match = re.search(metadata_pattern, content, re.DOTALL)
+            if metadata_match:
+                metadata_block = metadata_match.group(0)
+                # Parse metadata lines
+                for line in metadata_block.split('\n'):
+                    if line.startswith('##') and ':' in line:
+                        # Parse "## key: value" format
+                        parts = line[2:].strip().split(':', 1)
+                        if len(parts) == 2:
+                            key = parts[0].strip()
+                            value = parts[1].strip()
+                            if key not in ['Metadata_Start', 'Metadata_End']:
+                                frontmatter_dict[key] = value
+
+                # Remove metadata block from content
+                content = re.sub(metadata_pattern, '', content, flags=re.DOTALL).strip()
+
+        return frontmatter_dict if frontmatter_dict else None, content
 
     def _strip_numeric_prefix(self, slug: str) -> str:
         """Strip numeric prefixes from slugs (e.g., '001-article-name' -> 'article-name').

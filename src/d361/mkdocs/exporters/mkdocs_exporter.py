@@ -293,13 +293,19 @@ class MkDocsExporter:
         
         # Convert to optimized Markdown
         markdown_content = await self.markdown_processor.convert(enhanced_content)
-        
+
         # Process assets
-        processed_content = await self.asset_manager.process_assets(
-            markdown_content, 
+        asset_list = await self.asset_manager.process_assets(
+            markdown_content,
             article.id
         )
-        
+
+        # Update asset references in content
+        processed_content = self.asset_manager.update_asset_references(
+            markdown_content,
+            asset_list
+        )
+
         # Create processed article
         processed_article = Article(
             id=article.id,
