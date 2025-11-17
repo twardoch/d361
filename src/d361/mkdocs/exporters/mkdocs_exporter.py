@@ -363,10 +363,13 @@ class MkDocsExporter:
         # Write article files
         for article in resolved_articles:
             await self._write_article_file(article, docs_dir)
-        
+
+        # Generate homepage index.md
+        await self._generate_homepage(resolved_articles, categories, docs_dir)
+
         # Generate category index pages
         await self._generate_category_indexes(categories, docs_dir)
-        
+
         # Copy assets
         await self._copy_assets(docs_dir)
     
@@ -427,10 +430,81 @@ class MkDocsExporter:
         content_lines.extend(["---", "", article.content])
 
         file_path.write_text("\n".join(content_lines), encoding="utf-8")
-    
+
+    async def _generate_homepage(
+        self,
+        articles: List[Article],
+        categories: List[Category],
+        docs_dir: Path
+    ) -> None:
+        """Generate homepage index.md for the documentation site."""
+        index_path = docs_dir / "index.md"
+
+        # Find key articles for homepage links
+        intro_articles = [a for a in articles if 'introduction' in a.slug.lower() or 'getting-started' in a.slug.lower()]
+        interface_articles = [a for a in articles if 'interface' in a.slug.lower() or 'overview' in a.slug.lower()]
+
+        # Generate frontmatter
+        frontmatter = {
+            "title": "Vexy Lines Documentation",
+            "description": "Complete documentation for Vexy Lines - transform images into stunning vector artwork with AI-powered line art generation.",
+        }
+
+        # Generate content
+        content_parts = [
+            "# Vexy Lines Documentation",
+            "",
+            "Welcome to the official Vexy Lines documentation. Vexy Lines is a powerful tool for creating vector artwork from images using AI-powered line generation.",
+            "",
+            "## Getting Started",
+            "",
+            "New to Vexy Lines? Start here:",
+            "",
+        ]
+
+        # Add links to key getting started articles
+        for article in intro_articles[:5]:  # Limit to first 5
+            content_parts.append(f"- [{article.title}]({article.slug}.md)")
+
+        # Add core feature sections
+        content_parts.extend([
+            "",
+            "## Core Features",
+            "",
+            "### Working with Documents",
+            "- Create, open, save, and export your artwork",
+            "",
+            "### Layers & Groups  ",
+            "- Organize and structure your content",
+            "",
+            "### Fills",
+            "- Apply various fill types including Linear, Radial, Circular, Wave, and more",
+            "",
+            "### Masks & Mesh",
+            "- Control fill visibility and advanced deformation",
+            "",
+            "### Tools",
+            "- Editor, Pencil, Brush, Transform, and more",
+            "",
+            "---",
+            "",
+            "*This documentation is automatically generated from Document360 and deployed via GitHub Actions.*",
+        ])
+
+        # Write file with frontmatter
+        file_content = ["---"]
+        for key, value in frontmatter.items():
+            if value is not None:
+                file_content.append(f"{key}: {value}")
+        file_content.extend(["---", ""])
+        file_content.extend(content_parts)
+
+        index_path.write_text("\n".join(file_content), encoding="utf-8")
+        logger.info(f"Generated homepage: {index_path}")
+
     async def _generate_category_indexes(
-        self, 
-        categories: List[Category], 
+        self,
+        categories: List[Category],
         docs_dir: Path
     ) -> None:
         """Generate index pages for categories."""
