@@ -365,16 +365,49 @@ class MkDocsExporter:
         await self._copy_assets(docs_dir)
     
     async def _write_article_file(self, article: Article, docs_dir: Path) -> None:
-        """Write individual article to MkDocs format."""
+        """Write individual article to MkDocs format with enhanced frontmatter."""
         # Determine file path based on category structure
         file_path = docs_dir / f"{article.slug}.md"
-        
-        # Generate frontmatter
+
+        # Generate enhanced frontmatter with metadata
         frontmatter = {
             "title": article.title,
-            "hide": ["toc"] if not article.content.strip() else None,
         }
-        
+
+        # Add description/excerpt if available
+        if article.excerpt:
+            frontmatter["description"] = article.excerpt
+        elif article.meta_description:
+            frontmatter["description"] = article.meta_description
+
+        # Add tags if available
+        if article.tags:
+            frontmatter["tags"] = article.tags
+
+        # Add dates
+        if article.created_at:
+            frontmatter["date"] = article.created_at.strftime("%Y-%m-%d")
+        if article.updated_at:
+            frontmatter["updated"] = article.updated_at.strftime("%Y-%m-%d")
+
+        # Add author if available
+        if article.author_name:
+            frontmatter["author"] = article.author_name
+
+        # Add SEO metadata
+        if article.meta_title:
+            frontmatter["meta_title"] = article.meta_title
+        if article.meta_description:
+            frontmatter["meta_description"] = article.meta_description
+
+        # Add status only if not published (don't show for published content)
+        if hasattr(article, 'status') and str(article.status).lower() not in ["published", "draft"]:
+            frontmatter["status"] = article.status
+
+        # Hide TOC for empty content
+        if not article.content.strip():
+            frontmatter["hide"] = ["toc"]
+
         # Write file with frontmatter
         content_lines = ["---"]
         for key, value in frontmatter.items():
@@ -386,7 +419,7 @@ class MkDocsExporter:
                 else:
                     content_lines.append(f"{key}: {value}")
         content_lines.extend(["---", "", article.content])
-        
+
         file_path.write_text("\n".join(content_lines), encoding="utf-8")
     
     async def _generate_category_indexes(

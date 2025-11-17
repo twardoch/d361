@@ -216,6 +216,7 @@ class Document360Parser:
 
         # Create d361 canonical Article model
         # Note: Some fields will be updated when loading content from files
+        from d361.core.models import PublishStatus
         article = Article(
             id=art_data["Id"],  # Support both integer and UUID string IDs
             title=slug.replace("-", " ").title(),  # Will be updated from file
@@ -224,6 +225,7 @@ class Document360Parser:
             content_markdown="",  # Will be loaded from file
             category_id=category_id,
             order=art_data.get("Order", 0),
+            status=PublishStatus.PUBLISHED,  # Assume published for archive content
             created_at=datetime.now(),  # Default since not in export
             updated_at=datetime.now(),  # Default since not in export
             author_name="",  # Will be updated if found in file
