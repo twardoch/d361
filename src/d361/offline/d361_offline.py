@@ -27,6 +27,7 @@ class D361Offline:
         self.config = config
         self.output_dir = config.output_dir
         self.prep_file = self.output_dir / "prep.json"
+        self.state: dict[str, Any] = {}
         logger.info(f"Initialized D361Offline with output directory: {self.output_dir}")
 
     async def prep(self) -> dict[str, Any]:
@@ -35,7 +36,7 @@ class D361Offline:
 
         # Parse sitemap to get URLs
         urls = await parse_sitemap(
-            sitemap_url=str(self.config.map_url),
+            str(self.config.map_url),
             test=self.config.test,
             pause=self.config.pause,
         )

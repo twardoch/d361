@@ -281,7 +281,11 @@ async def expand_all_items(page: Page, selector: str, max_attempts: int = 12) ->
                                                 300
                                             )  # Longer wait
                                     except Exception as e:
-                                        _error_message = str(e).splitlines()[0] if str(e).splitlines() else str(e)
+                                        _error_message = (
+                                            str(e).splitlines()[0]
+                                            if str(e).splitlines()
+                                            else str(e)
+                                        )
                                         logger.debug(
                                             f"Error expanding item: {_error_message}"
                                         )
@@ -290,7 +294,9 @@ async def expand_all_items(page: Page, selector: str, max_attempts: int = 12) ->
                             # After each batch, wait a bit longer to let DOM settle
                             await page.wait_for_timeout(1000)  # Increased from 750
                 except Exception as e:
-                    _error_message = str(e).splitlines()[0] if str(e).splitlines() else str(e)
+                    _error_message = (
+                        str(e).splitlines()[0] if str(e).splitlines() else str(e)
+                    )
                     logger.debug(
                         f"Error processing selector {collapse_selector}: {_error_message}"
                     )

@@ -3,6 +3,7 @@
 This document contains the linearized itemized plan for enhancing the d361 package with comprehensive MkDocs export capabilities.
 
 ## 📊 Current Status
+**✅ 2026-07-05 MODERNIZED & RELEASED (v2.2.10)**: CI added (push + release workflows), `watchdog` hot-reload bug fixed, full test suite green (mocked/offline), ruff+format clean, `d361api>=2.2.8` sibling pin. See `CHANGELOG.md`.
 **✅ FOUNDATION COMPLETE**: d361 package has solid hexagonal architecture
 **🎯 CURRENT FOCUS**: Implementing comprehensive Document360 → MkDocs export functionality
 **📋 RESEARCH COMPLETE**: MkDocs ecosystem, Material theme, plugins, and extensions analyzed

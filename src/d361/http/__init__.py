@@ -5,7 +5,7 @@ HTTP Client Module - Enterprise-grade HTTP handling for d361.
 This module provides a unified HTTP client built on httpx with enterprise features:
 - Automatic retries with exponential backoff
 - Comprehensive logging and metrics
-- Request/response middleware support  
+- Request/response middleware support
 - Legacy aiohttp compatibility layer
 - Robust error handling and classification
 
@@ -15,7 +15,7 @@ Examples:
     >>> async with create_http_client() as client:
     ...     response = await client.get('https://api.example.com')
     ...     print(response.status_code, response.json_data)
-    
+
     With configuration:
     >>> from d361.http import UnifiedHttpClient, RetryConfig
     >>> retry_config = RetryConfig(max_attempts=5, wait_min=2.0)
@@ -24,7 +24,7 @@ Examples:
     ...     timeout=60.0,
     ...     retry_config=retry_config,
     ... )
-    
+
     Legacy compatibility:
     >>> from d361.http import AiohttpSession  # Deprecated
     >>> async with AiohttpSession() as session:
@@ -33,22 +33,19 @@ Examples:
 """
 
 # Core client classes
-from .client import (
-    HttpMethod,
-    HttpResponse, 
-    RetryConfig,
-    RequestMetrics,
-    UnifiedHttpClient,
-    create_http_client,
-)
-
 # Error classes
 from .client import (
-    HttpError,
     HttpClientError,
+    HttpError,
+    HttpMethod,
+    HttpNetworkError,
+    HttpResponse,
     HttpServerError,
     HttpTimeoutError,
-    HttpNetworkError,
+    RequestMetrics,
+    RetryConfig,
+    UnifiedHttpClient,
+    create_http_client,
 )
 
 # Compatibility layer (deprecated)
@@ -61,38 +58,35 @@ from .compatibility import (
 )
 
 __all__ = [
-    # Core client
-    "UnifiedHttpClient",
-    "create_http_client",
-    
-    # Configuration
-    "HttpMethod",
-    "RetryConfig", 
-    "RequestMetrics",
-    
-    # Response handling
-    "HttpResponse",
-    
-    # Error handling
-    "HttpError",
-    "HttpClientError",
-    "HttpServerError", 
-    "HttpTimeoutError",
-    "HttpNetworkError",
-    
     # Compatibility layer (deprecated)
     "AiohttpResponse",
     "AiohttpSession",
-    "ClientSession", 
-    "session",
+    "ClientSession",
+    "HttpClientError",
+    # Error handling
+    "HttpError",
+    # Configuration
+    "HttpMethod",
+    "HttpNetworkError",
+    # Response handling
+    "HttpResponse",
+    "HttpServerError",
+    "HttpTimeoutError",
     "MigrationHelper",
+    "RequestMetrics",
+    "RetryConfig",
+    # Core client
+    "UnifiedHttpClient",
+    "create_http_client",
+    "session",
 ]
+
 
 # Module-level convenience functions
 async def get(url: str, **kwargs) -> HttpResponse:
     """
     Convenience function for making GET requests.
-    
+
     Creates a temporary client instance for one-off requests.
     For multiple requests, use create_http_client() or UnifiedHttpClient.
     """
@@ -103,7 +97,7 @@ async def get(url: str, **kwargs) -> HttpResponse:
 async def post(url: str, **kwargs) -> HttpResponse:
     """
     Convenience function for making POST requests.
-    
+
     Creates a temporary client instance for one-off requests.
     For multiple requests, use create_http_client() or UnifiedHttpClient.
     """
@@ -114,7 +108,7 @@ async def post(url: str, **kwargs) -> HttpResponse:
 async def put(url: str, **kwargs) -> HttpResponse:
     """
     Convenience function for making PUT requests.
-    
+
     Creates a temporary client instance for one-off requests.
     For multiple requests, use create_http_client() or UnifiedHttpClient.
     """
@@ -125,7 +119,7 @@ async def put(url: str, **kwargs) -> HttpResponse:
 async def delete(url: str, **kwargs) -> HttpResponse:
     """
     Convenience function for making DELETE requests.
-    
+
     Creates a temporary client instance for one-off requests.
     For multiple requests, use create_http_client() or UnifiedHttpClient.
     """
@@ -134,9 +128,11 @@ async def delete(url: str, **kwargs) -> HttpResponse:
 
 
 # Add convenience functions to __all__
-__all__.extend([
-    "get",
-    "post", 
-    "put",
-    "delete",
-])
+__all__.extend(
+    [
+        "delete",
+        "get",
+        "post",
+        "put",
+    ]
+)

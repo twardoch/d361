@@ -13,7 +13,7 @@ from .mock_provider import MockProvider
 
 __all__ = [
     "ApiProvider",
-    "ArchiveProvider", 
+    "ArchiveProvider",
     "HybridProvider",
     "MockProvider",
 ]

@@ -1,5 +1,7 @@
-import pytest
 from pathlib import Path
+
+import pytest
+
 from d361.offline.config import Config
 from d361.offline.d361_offline import D361Offline
 
@@ -14,13 +16,17 @@ def default_config_dict() -> dict[str, str]:
 
 
 from typing import Any
-import pytest # Ensure pytest is imported if not already for type hints like MockerFixture
+
+import pytest  # Ensure pytest is imported if not already for type hints like MockerFixture
+
 
 @pytest.fixture
 def default_config(default_config_dict: dict[str, str], tmp_path: Path) -> Config:
-    config_dict_any: dict[str, Any] = default_config_dict.copy() # Make type checker happy for Path assignment
+    config_dict_any: dict[str, Any] = (
+        default_config_dict.copy()
+    )  # Make type checker happy for Path assignment
     config_dict_any["output_dir"] = tmp_path / default_config_dict["output_dir"]
-    return Config(**config_dict_any) # Corrected variable name
+    return Config(**config_dict_any)  # Corrected variable name
 
 
 @pytest.fixture
@@ -61,7 +67,9 @@ def test_config_creation(default_config_dict: dict[str, str], tmp_path: Path) ->
 
 
 # Tests for D361Offline
-def test_d361_offline_initialization(d361_offline_instance: D361Offline, default_config: Config) -> None:
+def test_d361_offline_initialization(
+    d361_offline_instance: D361Offline, default_config: Config
+) -> None:
     """Test D361Offline initialization."""
     assert d361_offline_instance.config == default_config
     # sitemap_urls, nav_items, processed_content are populated by methods, not at init
@@ -75,7 +83,9 @@ def test_d361_offline_initialization(d361_offline_instance: D361Offline, default
 # using mocker for network calls and file system interactions.
 
 
-def test_config_root_domain_extraction_and_paths(tmp_path: Path) -> None:  # Combined and renamed
+def test_config_root_domain_extraction_and_paths(
+    tmp_path: Path,
+) -> None:  # Combined and renamed
     """Test root_domain extraction and related path properties in Config."""
     # Test with a specific output_dir
     output_dir = tmp_path / "specific_docs"
@@ -178,11 +188,12 @@ def test_config_output_dir_explicit_settings(tmp_path: Path) -> None:
     assert (runtime_cwd / Path(".") / "html").exists()
 
 
-from pydantic import BaseModel, AnyHttpUrl, computed_field # Moved to top
+from pydantic import AnyHttpUrl, BaseModel, computed_field  # Moved to top
+
 
 # Minimal test for Pydantic computed_field
 def test_minimal_config_root_domain() -> None:
-    class MinimalConfig(BaseModel): # pydantic types are now globally available
+    class MinimalConfig(BaseModel):  # pydantic types are now globally available
         url: AnyHttpUrl
 
         @computed_field  # type: ignore[prop-decorator]

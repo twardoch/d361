@@ -9,33 +9,36 @@ and secure defaults for production deployment.
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
 from enum import Enum
+from pathlib import Path
+from typing import Any
 
 from loguru import logger
+
 try:
-    from pydantic_settings import BaseSettings
     from pydantic import Field, field_validator, model_validator
+    from pydantic_settings import BaseSettings
 except ImportError:
     # Fallback for Pydantic v1
     from pydantic import BaseSettings, Field
-    from pydantic import validator as field_validator, root_validator as model_validator
+    from pydantic import root_validator as model_validator
+    from pydantic import validator as field_validator
 
 from ..api.errors import Document360Error, ErrorCategory, ErrorSeverity
 
 
 class Environment(str, Enum):
     """Deployment environments."""
+
     DEVELOPMENT = "development"
-    STAGING = "staging"  
+    STAGING = "staging"
     PRODUCTION = "production"
     TESTING = "testing"
 
 
 class LogLevel(str, Enum):
     """Logging levels."""
+
     TRACE = "TRACE"
     DEBUG = "DEBUG"
     INFO = "INFO"
@@ -46,6 +49,7 @@ class LogLevel(str, Enum):
 
 class CacheEvictionPolicy(str, Enum):
     """Cache eviction policies."""
+
     LRU = "lru"
     LFU = "lfu"
     FIFO = "fifo"
@@ -55,6 +59,7 @@ class CacheEvictionPolicy(str, Enum):
 
 class SecretProvider(str, Enum):
     """Secret management providers."""
+
     LOCAL_FILE = "local_file"
     ENVIRONMENT = "environment"
     HASHICORP_VAULT = "vault"
@@ -64,86 +69,69 @@ class SecretProvider(str, Enum):
 
 class ApiConfig(BaseSettings):
     """Configuration for API client operations."""
-    
+
     # Connection settings
     base_url: str = Field(
         default="https://apidocs.document360.com",
-        description="Base URL for Document360 API"
+        description="Base URL for Document360 API",
     )
-    
+
     timeout_seconds: int = Field(
-        default=30,
-        ge=1,
-        le=300,
-        description="Request timeout in seconds"
+        default=30, ge=1, le=300, description="Request timeout in seconds"
     )
-    
+
     max_retries: int = Field(
-        default=3,
-        ge=0,
-        le=10,
-        description="Maximum retry attempts"
+        default=3, ge=0, le=10, description="Maximum retry attempts"
     )
-    
+
     # Authentication
-    api_tokens: List[str] = Field(
-        default_factory=list,
-        description="API tokens for authentication"
+    api_tokens: list[str] = Field(
+        default_factory=list, description="API tokens for authentication"
     )
-    
+
     token_rotation_enabled: bool = Field(
-        default=True,
-        description="Enable automatic token rotation"
+        default=True, description="Enable automatic token rotation"
     )
-    
+
     # Rate limiting
     requests_per_minute: int = Field(
+        default=60, ge=1, le=1000, description="Requests per minute limit"
+    )
+
+    calls_per_minute: int = Field(
         default=60,
         ge=1,
         le=1000,
-        description="Requests per minute limit"
+        description="API calls per minute (alias for requests_per_minute)",
     )
-    
+
     burst_limit: int = Field(
-        default=10,
-        ge=1,
-        le=100,
-        description="Burst request limit"
+        default=10, ge=1, le=100, description="Burst request limit"
     )
-    
+
     # Circuit breaker
     circuit_breaker_enabled: bool = Field(
-        default=True,
-        description="Enable circuit breaker pattern"
+        default=True, description="Enable circuit breaker pattern"
     )
-    
+
     failure_threshold: int = Field(
-        default=5,
-        ge=1,
-        le=20,
-        description="Circuit breaker failure threshold"
+        default=5, ge=1, le=20, description="Circuit breaker failure threshold"
     )
-    
+
     recovery_timeout: int = Field(
         default=60,
         ge=10,
         le=600,
-        description="Circuit breaker recovery timeout in seconds"
+        description="Circuit breaker recovery timeout in seconds",
     )
-    
+
     # Bulk operations
     bulk_batch_size: int = Field(
-        default=100,
-        ge=1,
-        le=1000,
-        description="Default batch size for bulk operations"
+        default=100, ge=1, le=1000, description="Default batch size for bulk operations"
     )
-    
+
     bulk_concurrency: int = Field(
-        default=5,
-        ge=1,
-        le=20,
-        description="Concurrent bulk operations limit"
+        default=5, ge=1, le=20, description="Concurrent bulk operations limit"
     )
 
     class Config:
@@ -153,69 +141,54 @@ class ApiConfig(BaseSettings):
 
 class ArchiveConfig(BaseSettings):
     """Configuration for archive processing operations."""
-    
+
     # Storage paths
     cache_dir: Path = Field(
         default_factory=lambda: Path.home() / ".d361" / "cache" / "archives",
-        description="Directory for archive cache"
+        description="Directory for archive cache",
     )
-    
+
     temp_dir: Path = Field(
         default_factory=lambda: Path("/tmp") / "d361_archives",
-        description="Temporary directory for archive extraction"
+        description="Temporary directory for archive extraction",
     )
-    
+
     # Processing settings
     max_archive_size_mb: int = Field(
-        default=500,
-        ge=1,
-        le=5000,
-        description="Maximum archive size in MB"
+        default=500, ge=1, le=5000, description="Maximum archive size in MB"
     )
-    
+
     max_extracted_size_mb: int = Field(
         default=2000,
         ge=10,
         le=10000,
-        description="Maximum extracted content size in MB"
+        description="Maximum extracted content size in MB",
     )
-    
+
     batch_size: int = Field(
-        default=1000,
-        ge=10,
-        le=10000,
-        description="Batch size for archive processing"
+        default=1000, ge=10, le=10000, description="Batch size for archive processing"
     )
-    
+
     # Database settings
-    db_path: Optional[Path] = Field(
-        None,
-        description="SQLite database path (auto-generated if None)"
+    db_path: Path | None = Field(
+        None, description="SQLite database path (auto-generated if None)"
     )
-    
+
     enable_fts: bool = Field(
-        default=True,
-        description="Enable full-text search indexing"
+        default=True, description="Enable full-text search indexing"
     )
-    
+
     vacuum_interval_hours: int = Field(
-        default=24,
-        ge=1,
-        le=168,
-        description="Database vacuum interval in hours"
+        default=24, ge=1, le=168, description="Database vacuum interval in hours"
     )
-    
+
     # Performance settings
     connection_pool_size: int = Field(
-        default=10,
-        ge=1,
-        le=100,
-        description="Database connection pool size"
+        default=10, ge=1, le=100, description="Database connection pool size"
     )
-    
+
     cache_eviction_policy: CacheEvictionPolicy = Field(
-        default=CacheEvictionPolicy.LRU,
-        description="Cache eviction policy"
+        default=CacheEvictionPolicy.LRU, description="Cache eviction policy"
     )
 
     class Config:
@@ -233,92 +206,60 @@ class ArchiveConfig(BaseSettings):
 
 class ScrapingConfig(BaseSettings):
     """Configuration for web scraping operations."""
-    
+
     # Browser settings
     browser_type: str = Field(
-        default="chromium",
-        description="Browser type (chromium, firefox, webkit)"
+        default="chromium", description="Browser type (chromium, firefox, webkit)"
     )
-    
-    headless: bool = Field(
-        default=True,
-        description="Run browser in headless mode"
-    )
-    
-    user_data_dir: Optional[Path] = Field(
-        None,
-        description="Browser user data directory"
-    )
-    
+
+    headless: bool = Field(default=True, description="Run browser in headless mode")
+
+    user_data_dir: Path | None = Field(None, description="Browser user data directory")
+
     # Request settings
     timeout_seconds: int = Field(
-        default=30,
-        ge=5,
-        le=300,
-        description="Page load timeout in seconds"
+        default=30, ge=5, le=300, description="Page load timeout in seconds"
     )
-    
+
     delay_min_seconds: float = Field(
-        default=1.0,
-        ge=0.1,
-        le=10.0,
-        description="Minimum delay between requests"
+        default=1.0, ge=0.1, le=10.0, description="Minimum delay between requests"
     )
-    
+
     delay_max_seconds: float = Field(
-        default=3.0,
-        ge=0.5,
-        le=20.0,
-        description="Maximum delay between requests"
+        default=3.0, ge=0.5, le=20.0, description="Maximum delay between requests"
     )
-    
+
     # Concurrency settings
     concurrent_pages: int = Field(
-        default=2,
-        ge=1,
-        le=10,
-        description="Maximum concurrent pages"
+        default=2, ge=1, le=10, description="Maximum concurrent pages"
     )
-    
+
     max_requests_per_domain: int = Field(
-        default=100,
-        ge=1,
-        le=10000,
-        description="Maximum requests per domain"
+        default=100, ge=1, le=10000, description="Maximum requests per domain"
     )
-    
+
     # Content settings
     max_content_length_mb: int = Field(
-        default=10,
-        ge=1,
-        le=100,
-        description="Maximum content length in MB"
+        default=10, ge=1, le=100, description="Maximum content length in MB"
     )
-    
-    save_screenshots: bool = Field(
-        default=False,
-        description="Save page screenshots"
+
+    save_screenshots: bool = Field(default=False, description="Save page screenshots")
+
+    screenshot_dir: Path | None = Field(
+        None, description="Screenshot storage directory"
     )
-    
-    screenshot_dir: Optional[Path] = Field(
-        None,
-        description="Screenshot storage directory"
-    )
-    
+
     # Anti-detection settings
     randomize_user_agent: bool = Field(
-        default=True,
-        description="Randomize user agents"
+        default=True, description="Randomize user agents"
     )
-    
+
     dismiss_cookie_banners: bool = Field(
-        default=True,
-        description="Attempt to dismiss cookie banners"
+        default=True, description="Attempt to dismiss cookie banners"
     )
-    
+
     respect_robots_txt: bool = Field(
-        default=True,
-        description="Respect robots.txt files"
+        default=True, description="Respect robots.txt files"
     )
 
     class Config:
@@ -328,67 +269,48 @@ class ScrapingConfig(BaseSettings):
 
 class CacheConfig(BaseSettings):
     """Configuration for caching operations."""
-    
+
     # General cache settings
-    enabled: bool = Field(
-        default=True,
-        description="Enable caching globally"
-    )
-    
+    enabled: bool = Field(default=True, description="Enable caching globally")
+
     default_ttl_seconds: int = Field(
-        default=3600,
-        ge=60,
-        le=86400,
-        description="Default TTL in seconds"
+        default=3600, ge=60, le=86400, description="Default TTL in seconds"
     )
-    
+
     max_memory_mb: int = Field(
-        default=256,
-        ge=10,
-        le=2048,
-        description="Maximum memory cache size in MB"
+        default=256, ge=10, le=2048, description="Maximum memory cache size in MB"
     )
-    
+
     # Disk cache settings
     disk_cache_enabled: bool = Field(
-        default=True,
-        description="Enable disk-based caching"
+        default=True, description="Enable disk-based caching"
     )
-    
+
     disk_cache_dir: Path = Field(
         default_factory=lambda: Path.home() / ".d361" / "cache" / "disk",
-        description="Disk cache directory"
+        description="Disk cache directory",
     )
-    
+
     max_disk_size_mb: int = Field(
-        default=1024,
-        ge=50,
-        le=10240,
-        description="Maximum disk cache size in MB"
+        default=1024, ge=50, le=10240, description="Maximum disk cache size in MB"
     )
-    
+
     # Eviction policies
     eviction_policy: CacheEvictionPolicy = Field(
-        default=CacheEvictionPolicy.LRU,
-        description="Cache eviction policy"
+        default=CacheEvictionPolicy.LRU, description="Cache eviction policy"
     )
-    
+
     cleanup_interval_seconds: int = Field(
-        default=300,
-        ge=60,
-        le=3600,
-        description="Cache cleanup interval in seconds"
+        default=300, ge=60, le=3600, description="Cache cleanup interval in seconds"
     )
-    
+
     # Performance settings
     compression_enabled: bool = Field(
-        default=True,
-        description="Enable cache data compression"
+        default=True, description="Enable cache data compression"
     )
-    
+
     async_writes: bool = Field(
-        default=True,
-        description="Enable asynchronous cache writes"
+        default=True, description="Enable asynchronous cache writes"
     )
 
     class Config:
@@ -406,92 +328,63 @@ class CacheConfig(BaseSettings):
 
 class MonitoringConfig(BaseSettings):
     """Configuration for monitoring and observability."""
-    
+
     # Logging settings
-    log_level: LogLevel = Field(
-        default=LogLevel.INFO,
-        description="Global log level"
-    )
-    
+    log_level: LogLevel = Field(default=LogLevel.INFO, description="Global log level")
+
     log_format: str = Field(
-        default="json",
-        description="Log format (json, console, structured)"
+        default="json", description="Log format (json, console, structured)"
     )
-    
-    log_file_path: Optional[Path] = Field(
-        None,
-        description="Log file path (stdout if None)"
+
+    log_file_path: Path | None = Field(
+        None, description="Log file path (stdout if None)"
     )
-    
+
     log_rotation_size_mb: int = Field(
-        default=100,
-        ge=1,
-        le=1000,
-        description="Log file rotation size in MB"
+        default=100, ge=1, le=1000, description="Log file rotation size in MB"
     )
-    
+
     log_retention_days: int = Field(
-        default=30,
-        ge=1,
-        le=365,
-        description="Log retention period in days"
+        default=30, ge=1, le=365, description="Log retention period in days"
     )
-    
+
     # Metrics settings
-    metrics_enabled: bool = Field(
-        default=True,
-        description="Enable metrics collection"
-    )
-    
+    metrics_enabled: bool = Field(default=True, description="Enable metrics collection")
+
     metrics_port: int = Field(
-        default=9090,
-        ge=1024,
-        le=65535,
-        description="Metrics server port"
+        default=9090, ge=1024, le=65535, description="Metrics server port"
     )
-    
-    metrics_path: str = Field(
-        default="/metrics",
-        description="Metrics endpoint path"
-    )
-    
+
+    metrics_path: str = Field(default="/metrics", description="Metrics endpoint path")
+
     # Health check settings
     health_check_enabled: bool = Field(
-        default=True,
-        description="Enable health check endpoint"
+        default=True, description="Enable health check endpoint"
     )
-    
+
     health_check_port: int = Field(
-        default=8080,
-        ge=1024,
-        le=65535,
-        description="Health check server port"
+        default=8080, ge=1024, le=65535, description="Health check server port"
     )
-    
+
     health_check_path: str = Field(
-        default="/health",
-        description="Health check endpoint path"
+        default="/health", description="Health check endpoint path"
     )
-    
+
     # Alerting settings
     alerting_enabled: bool = Field(
-        default=False,
-        description="Enable alerting (production only)"
+        default=False, description="Enable alerting (production only)"
     )
-    
-    alert_webhook_url: Optional[str] = Field(
-        None,
-        description="Webhook URL for alerts"
-    )
-    
-    alert_thresholds: Dict[str, float] = Field(
+
+    alert_webhook_url: str | None = Field(None, description="Webhook URL for alerts")
+
+    alert_thresholds: dict[str, float] = Field(
         default_factory=lambda: {
             "error_rate": 0.05,
             "response_time_p95": 5000.0,
             "memory_usage": 0.8,
-            "disk_usage": 0.9
+            "disk_usage": 0.9,
         },
-        description="Alert thresholds for various metrics"
+        description="Alert thresholds for various metrics",
     )
 
     class Config:
@@ -501,70 +394,51 @@ class MonitoringConfig(BaseSettings):
 
 class SecurityConfig(BaseSettings):
     """Configuration for security settings."""
-    
+
     # Secrets management
     secrets_provider: SecretProvider = Field(
-        default=SecretProvider.ENVIRONMENT,
-        description="Secret management provider"
+        default=SecretProvider.ENVIRONMENT, description="Secret management provider"
     )
-    
-    secrets_config: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Provider-specific secret configuration"
+
+    secrets_config: dict[str, Any] = Field(
+        default_factory=dict, description="Provider-specific secret configuration"
     )
-    
+
     # Encryption settings
-    encryption_key_path: Optional[Path] = Field(
-        None,
-        description="Path to encryption key file"
+    encryption_key_path: Path | None = Field(
+        None, description="Path to encryption key file"
     )
-    
+
     encryption_algorithm: str = Field(
-        default="AES-256-GCM",
-        description="Encryption algorithm"
+        default="AES-256-GCM", description="Encryption algorithm"
     )
-    
+
     # Security headers
     security_headers_enabled: bool = Field(
-        default=True,
-        description="Enable security headers"
+        default=True, description="Enable security headers"
     )
-    
-    cors_enabled: bool = Field(
-        default=False,
-        description="Enable CORS headers"
+
+    cors_enabled: bool = Field(default=False, description="Enable CORS headers")
+
+    cors_origins: list[str] = Field(
+        default_factory=list, description="Allowed CORS origins"
     )
-    
-    cors_origins: List[str] = Field(
-        default_factory=list,
-        description="Allowed CORS origins"
-    )
-    
+
     # Rate limiting
     rate_limiting_enabled: bool = Field(
-        default=True,
-        description="Enable rate limiting"
+        default=True, description="Enable rate limiting"
     )
-    
+
     rate_limit_requests_per_hour: int = Field(
-        default=1000,
-        ge=10,
-        le=100000,
-        description="Rate limit requests per hour"
+        default=1000, ge=10, le=100000, description="Rate limit requests per hour"
     )
-    
+
     # Input validation
     max_request_size_mb: int = Field(
-        default=16,
-        ge=1,
-        le=100,
-        description="Maximum request size in MB"
+        default=16, ge=1, le=100, description="Maximum request size in MB"
     )
-    
-    sanitize_inputs: bool = Field(
-        default=True,
-        description="Enable input sanitization"
-    )
+
+    sanitize_inputs: bool = Field(default=True, description="Enable input sanitization")
 
     class Config:
         env_prefix = "D361_SECURITY_"
@@ -574,49 +448,38 @@ class SecurityConfig(BaseSettings):
 class AppConfig(BaseSettings):
     """
     Main application configuration with comprehensive settings.
-    
+
     This is the root configuration class that encompasses all d361 components
     with environment-specific settings, validation rules, and secure defaults
     for development, staging, and production deployments.
     """
-    
+
     # Application metadata
-    app_name: str = Field(
-        default="d361",
-        description="Application name"
-    )
-    
-    version: str = Field(
-        default="1.0.0",
-        description="Application version"
-    )
-    
+    app_name: str = Field(default="d361", description="Application name")
+
+    version: str = Field(default="1.0.0", description="Application version")
+
     environment: Environment = Field(
-        default=Environment.DEVELOPMENT,
-        description="Deployment environment"
+        default=Environment.DEVELOPMENT, description="Deployment environment"
     )
-    
-    debug: bool = Field(
-        default=True,
-        description="Enable debug mode"
-    )
-    
+
+    debug: bool = Field(default=True, description="Enable debug mode")
+
     # Core directories
     data_dir: Path = Field(
-        default_factory=lambda: Path.home() / ".d361",
-        description="Main data directory"
+        default_factory=lambda: Path.home() / ".d361", description="Main data directory"
     )
-    
+
     config_dir: Path = Field(
         default_factory=lambda: Path.home() / ".d361" / "config",
-        description="Configuration files directory"
+        description="Configuration files directory",
     )
-    
+
     logs_dir: Path = Field(
         default_factory=lambda: Path.home() / ".d361" / "logs",
-        description="Log files directory"
+        description="Log files directory",
     )
-    
+
     # Component configurations
     api: ApiConfig = Field(default_factory=ApiConfig)
     archive: ArchiveConfig = Field(default_factory=ArchiveConfig)
@@ -624,18 +487,18 @@ class AppConfig(BaseSettings):
     cache: CacheConfig = Field(default_factory=CacheConfig)
     monitoring: MonitoringConfig = Field(default_factory=MonitoringConfig)
     security: SecurityConfig = Field(default_factory=SecurityConfig)
-    
+
     # Feature flags
-    features: Dict[str, bool] = Field(
+    features: dict[str, bool] = Field(
         default_factory=lambda: {
             "api_client": True,
             "archive_processing": True,
             "web_scraping": True,
             "hybrid_provider": True,
             "metrics_collection": True,
-            "health_checks": True
+            "health_checks": True,
         },
-        description="Feature toggle flags"
+        description="Feature toggle flags",
     )
 
     class Config:
@@ -659,30 +522,39 @@ class AppConfig(BaseSettings):
         if self.environment == Environment.PRODUCTION:
             # Production validation rules
             if self.debug:
-                logger.warning("Debug mode is enabled in production - this is not recommended")
-            
+                logger.warning(
+                    "Debug mode is enabled in production - this is not recommended"
+                )
+
             # Ensure security settings are appropriate
-            if self.security and self.security.secrets_provider == SecretProvider.ENVIRONMENT:
-                logger.warning("Using environment variables for secrets in production - consider a dedicated secret manager")
-            
+            if (
+                self.security
+                and self.security.secrets_provider == SecretProvider.ENVIRONMENT
+            ):
+                logger.warning(
+                    "Using environment variables for secrets in production - consider a dedicated secret manager"
+                )
+
             # Validate monitoring is enabled
             if self.monitoring:
                 if not self.monitoring.metrics_enabled:
                     logger.warning("Metrics collection is disabled in production")
                 if not self.monitoring.health_check_enabled:
                     logger.warning("Health checks are disabled in production")
-        
+
         return self
 
-    @model_validator(mode="after")  
+    @model_validator(mode="after")
     def validate_component_consistency(self):
         """Validate consistency across component configurations."""
         # Ensure cache directories are consistent
         if self.archive and self.cache:
             # Ensure archive cache is under main cache directory
-            if not str(self.archive.cache_dir).startswith(str(self.cache.disk_cache_dir.parent)):
+            if not str(self.archive.cache_dir).startswith(
+                str(self.cache.disk_cache_dir.parent)
+            ):
                 logger.info("Archive cache directory is not under main cache directory")
-        
+
         return self
 
     def is_development(self) -> bool:
@@ -701,165 +573,175 @@ class AppConfig(BaseSettings):
         """Get feature flag value with default fallback."""
         return self.features.get(feature_name, default)
 
-    def validate_configuration(self) -> List[str]:
+    def validate_configuration(self) -> list[str]:
         """
         Validate the entire configuration and return list of issues.
-        
+
         Returns:
             List of validation error messages
         """
         issues = []
-        
+
         # Check required API tokens in production
         if self.is_production() and not self.api.api_tokens:
             issues.append("API tokens are required in production environment")
-        
+
         # Check disk space requirements
-        total_cache_mb = self.cache.max_disk_size_mb + self.archive.max_extracted_size_mb
+        total_cache_mb = (
+            self.cache.max_disk_size_mb + self.archive.max_extracted_size_mb
+        )
         if total_cache_mb > 10000:  # 10GB
             issues.append(f"Total cache size ({total_cache_mb}MB) may be too large")
-        
+
         # Check port conflicts
         ports_used = set()
         if self.monitoring.metrics_enabled:
             if self.monitoring.metrics_port in ports_used:
-                issues.append(f"Port conflict: metrics port {self.monitoring.metrics_port} already used")
+                issues.append(
+                    f"Port conflict: metrics port {self.monitoring.metrics_port} already used"
+                )
             ports_used.add(self.monitoring.metrics_port)
-        
+
         if self.monitoring.health_check_enabled:
             if self.monitoring.health_check_port in ports_used:
-                issues.append(f"Port conflict: health check port {self.monitoring.health_check_port} already used")
+                issues.append(
+                    f"Port conflict: health check port {self.monitoring.health_check_port} already used"
+                )
             ports_used.add(self.monitoring.health_check_port)
-        
+
         # Validate scraping settings
         if self.scraping.delay_min_seconds > self.scraping.delay_max_seconds:
             issues.append("Scraping minimum delay cannot be greater than maximum delay")
-        
+
         return issues
 
-    def to_dict(self, exclude_secrets: bool = True) -> Dict[str, Any]:
+    def to_dict(self, exclude_secrets: bool = True) -> dict[str, Any]:
         """
         Convert configuration to dictionary.
-        
+
         Args:
             exclude_secrets: Whether to exclude sensitive information
-            
+
         Returns:
             Configuration dictionary
         """
         config_dict = self.dict()
-        
+
         if exclude_secrets:
             # Remove sensitive fields
             if "api" in config_dict and "api_tokens" in config_dict["api"]:
                 config_dict["api"]["api_tokens"] = ["***"] * len(self.api.api_tokens)
-            
+
             if "security" in config_dict:
                 config_dict["security"].pop("secrets_config", None)
                 config_dict["security"].pop("encryption_key_path", None)
-        
+
         return config_dict
 
     @classmethod
     def load_from_file(cls, config_path: Path) -> AppConfig:
         """
         Load configuration from file.
-        
+
         Args:
             config_path: Path to configuration file
-            
+
         Returns:
             Loaded configuration instance
-            
+
         Raises:
             Document360Error: If configuration loading fails
         """
         try:
             if config_path.suffix.lower() == ".json":
                 import json
-                with open(config_path, "r") as f:
+
+                with open(config_path) as f:
                     config_data = json.load(f)
                 return cls(**config_data)
             elif config_path.suffix.lower() in [".yml", ".yaml"]:
                 try:
                     import yaml
-                    with open(config_path, "r") as f:
+
+                    with open(config_path) as f:
                         config_data = yaml.safe_load(f)
                     return cls(**config_data)
                 except ImportError:
                     raise Document360Error(
                         "PyYAML is required to load YAML configuration files",
                         category=ErrorCategory.CONFIGURATION,
-                        severity=ErrorSeverity.HIGH
+                        severity=ErrorSeverity.HIGH,
                     )
             else:
                 raise Document360Error(
                     f"Unsupported configuration file format: {config_path.suffix}",
                     category=ErrorCategory.CONFIGURATION,
-                    severity=ErrorSeverity.HIGH
+                    severity=ErrorSeverity.HIGH,
                 )
         except Exception as e:
             raise Document360Error(
                 f"Failed to load configuration from {config_path}: {e}",
                 category=ErrorCategory.CONFIGURATION,
-                severity=ErrorSeverity.HIGH
+                severity=ErrorSeverity.HIGH,
             )
 
     def save_to_file(self, config_path: Path, exclude_secrets: bool = True) -> None:
         """
         Save configuration to file.
-        
+
         Args:
             config_path: Path where to save configuration
             exclude_secrets: Whether to exclude sensitive information
-            
+
         Raises:
             Document360Error: If saving fails
         """
         try:
             config_dict = self.to_dict(exclude_secrets=exclude_secrets)
             config_path.parent.mkdir(parents=True, exist_ok=True)
-            
+
             if config_path.suffix.lower() == ".json":
                 import json
+
                 with open(config_path, "w") as f:
                     json.dump(config_dict, f, indent=2, default=str)
             elif config_path.suffix.lower() in [".yml", ".yaml"]:
                 try:
                     import yaml
+
                     with open(config_path, "w") as f:
                         yaml.dump(config_dict, f, default_flow_style=False, indent=2)
                 except ImportError:
                     raise Document360Error(
                         "PyYAML is required to save YAML configuration files",
                         category=ErrorCategory.CONFIGURATION,
-                        severity=ErrorSeverity.HIGH
+                        severity=ErrorSeverity.HIGH,
                     )
             else:
                 raise Document360Error(
                     f"Unsupported configuration file format: {config_path.suffix}",
                     category=ErrorCategory.CONFIGURATION,
-                    severity=ErrorSeverity.HIGH
+                    severity=ErrorSeverity.HIGH,
                 )
-                
+
             logger.info(f"Configuration saved to {config_path}")
-            
+
         except Exception as e:
             raise Document360Error(
                 f"Failed to save configuration to {config_path}: {e}",
                 category=ErrorCategory.CONFIGURATION,
-                severity=ErrorSeverity.HIGH
+                severity=ErrorSeverity.HIGH,
             )
 
 
 # Global configuration instance
-_app_config: Optional[AppConfig] = None
+_app_config: AppConfig | None = None
 
 
 def get_config() -> AppConfig:
     """
     Get the global configuration instance.
-    
+
     Returns:
         Global AppConfig instance
     """
@@ -872,7 +754,7 @@ def get_config() -> AppConfig:
 def set_config(config: AppConfig) -> None:
     """
     Set the global configuration instance.
-    
+
     Args:
         config: AppConfig instance to set as global
     """

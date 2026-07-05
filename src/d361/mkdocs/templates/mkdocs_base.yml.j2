@@ -29,9 +29,7 @@ theme:
 # Navigation
 {% if navigation %}
 nav:
-{% for item in navigation %}
-  {{ item | indent(2, true) }}
-{% endfor %}
+{{ navigation | to_yaml | indent(2, true) }}
 {% endif %}
 
 # Markdown extensions

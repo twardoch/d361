@@ -128,6 +128,11 @@ class Config(BaseModel):
     def fetch_file(self) -> Path:
         return self.output_dir / self.fetch_filename
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def nav_json_file(self) -> Path:
+        return self.output_dir / self.nav_json_filename
+
     def model_post_init(self, __context: Any) -> None:
         """Post-initialization logic."""
         # Adjust output_dir to be a subdirectory of CWD if it's default or "."
@@ -161,6 +166,12 @@ class Config(BaseModel):
     def model_dump(self, **kwargs: Any) -> dict[str, Any]:
         """Override model_dump to ensure all fields are JSON serializable.
 
+        In addition to the declared ``Path``/``AnyHttpUrl`` fields, this model
+        has several computed fields (``html_dir``, ``md_dir``, ``prep_file``,
+        ``fetch_file``) that also return ``Path`` objects. Stringify every
+        ``Path`` value generically so the result is always safe to
+        ``json.dump`` regardless of which fields are Path-typed.
+
         Args:
             **kwargs: Arguments passed to model_dump
 
@@ -173,9 +184,8 @@ class Config(BaseModel):
             data["map_url"] = str(data["map_url"])
         if data.get("nav_url"):
             data["nav_url"] = str(data["nav_url"])
-        # Convert Path to string
-        if data.get("output_dir"):
-            data["output_dir"] = str(data["output_dir"])
-        if data.get("css_file"):
-            data["css_file"] = str(data["css_file"])
+        # Convert any Path value (declared or computed field) to string
+        for key, value in data.items():
+            if isinstance(value, Path):
+                data[key] = str(value)
         return data

@@ -13,7 +13,7 @@ from d361.core.models import Article, Category
 
 class Document360Parser:
     """Parse Document360 export structure using d361 canonical models.
-    
+
     This parser migrated from vexy_help and now uses d361's canonical
     Article and Category models for consistent data representation.
     """
@@ -47,7 +47,9 @@ class Document360Parser:
         """Find the version directory (e.g., v1)."""
         # Look for directories like v1, v2, etc.
         version_dirs = [
-            d for d in self.export_path.iterdir() if d.is_dir() and re.match(r"^v\d+$", d.name)
+            d
+            for d in self.export_path.iterdir()
+            if d.is_dir() and re.match(r"^v\d+$", d.name)
         ]
 
         if not version_dirs:
@@ -80,9 +82,9 @@ class Document360Parser:
             Tuple of (categories, articles) using d361 canonical models
         """
         import json
-        
+
         # Load metadata
-        with open(self.metadata_file, 'r', encoding='utf-8') as f:
+        with open(self.metadata_file, encoding="utf-8") as f:
             metadata = json.load(f)
 
         # Parse structure
@@ -92,9 +94,7 @@ class Document360Parser:
         # Load article content from files
         self._load_article_content(articles)
 
-        logger.info(
-            f"Parsed {len(articles)} articles in {len(categories)} categories"
-        )
+        logger.info(f"Parsed {len(articles)} articles in {len(categories)} categories")
 
         return categories, articles
 
@@ -113,10 +113,10 @@ class Document360Parser:
 
         # Recursively parse categories
         def parse_category_tree(
-            cat_data: dict[str, Any], 
-            parent_id: int | None = None, 
+            cat_data: dict[str, Any],
+            parent_id: int | None = None,
             level: int = 0,
-            path_prefix: str = ""
+            path_prefix: str = "",
         ) -> None:
             # Get language-specific data
             lang_data = cat_data.get("Languages", [{}])[0]
@@ -132,7 +132,7 @@ class Document360Parser:
             cat_name = cat_data.get("Title", lang_data.get("Title", "Untitled"))
             current_path = f"{path_prefix}/{cat_name}" if path_prefix else cat_name
 
-            # Create d361 canonical Category model  
+            # Create d361 canonical Category model
             category = Category(
                 id=cat_data["Id"],  # Support both integer and UUID string IDs
                 name=cat_name,
@@ -141,7 +141,8 @@ class Document360Parser:
                 order=cat_data.get("Order", 0),
                 level=level,
                 path=current_path,
-                description=lang_data.get("Description") or "",  # Handle null descriptions
+                description=lang_data.get("Description")
+                or "",  # Handle null descriptions
                 created_at=datetime.now(),  # Default since not in export
                 updated_at=datetime.now(),  # Default since not in export
                 is_public=True,  # Default for Document360
@@ -163,9 +164,7 @@ class Document360Parser:
         return categories
 
     def _parse_articles_from_categories(
-        self, 
-        metadata: dict[str, Any], 
-        categories: list[Category]
+        self, metadata: dict[str, Any], categories: list[Category]
     ) -> list[Article]:
         """Parse articles from category metadata.
 
@@ -177,9 +176,11 @@ class Document360Parser:
             List of articles using d361 canonical models
         """
         articles = []
-        category_id_map = {cat.id: cat for cat in categories}
+        {cat.id: cat for cat in categories}
 
-        def extract_articles_from_category(cat_data: dict[str, Any], category_id: int | str) -> None:
+        def extract_articles_from_category(
+            cat_data: dict[str, Any], category_id: int | str
+        ) -> None:
             # Parse articles in this category
             articles_data = cat_data.get("Articles", [])
             for art_data in articles_data:
@@ -188,19 +189,25 @@ class Document360Parser:
 
             # Recursively process subcategories
             for subcat_data in cat_data.get("SubCategories", []):
-                extract_articles_from_category(subcat_data, subcat_data["Id"])  # Support both integer and UUID string IDs
+                extract_articles_from_category(
+                    subcat_data, subcat_data["Id"]
+                )  # Support both integer and UUID string IDs
 
         # Process root categories from metadata
         categories_data = metadata.get("Categories", metadata.get("categories", []))
         for cat_data in categories_data:
-            extract_articles_from_category(cat_data, cat_data["Id"])  # Support both integer and UUID string IDs
+            extract_articles_from_category(
+                cat_data, cat_data["Id"]
+            )  # Support both integer and UUID string IDs
 
         # Sort articles by category and order
         articles.sort(key=lambda a: (a.category_id, a.order))
 
         return articles
 
-    def _parse_article_metadata(self, art_data: dict[str, Any], category_id: int | str) -> Article:
+    def _parse_article_metadata(
+        self, art_data: dict[str, Any], category_id: int | str
+    ) -> Article:
         """Parse article metadata into d361 canonical model.
 
         Args:
@@ -217,6 +224,7 @@ class Document360Parser:
         # Create d361 canonical Article model
         # Note: Some fields will be updated when loading content from files
         from d361.core.models import PublishStatus
+
         article = Article(
             id=art_data["Id"],  # Support both integer and UUID string IDs
             title=slug.replace("-", " ").title(),  # Will be updated from file
@@ -231,7 +239,7 @@ class Document360Parser:
             author_name="",  # Will be updated if found in file
             language_code="en",  # Default, could be extracted from metadata
             is_public=True,  # Default for Document360
-            metadata={"original_data": art_data}  # Store original for reference
+            metadata={"original_data": art_data},  # Store original for reference
         )
 
         return article
@@ -280,8 +288,10 @@ class Document360Parser:
                     article.title = frontmatter.get("title", article.title)
                     article.meta_title = frontmatter.get("seoTitle", "")
                     article.meta_description = frontmatter.get("description", "")
-                    article.language_code = frontmatter.get("code", article.language_code)
-                    
+                    article.language_code = frontmatter.get(
+                        "code", article.language_code
+                    )
+
                     # Handle visibility
                     if "hidden" in frontmatter:
                         article.is_public = frontmatter["hidden"] != "true"
@@ -301,41 +311,43 @@ class Document360Parser:
         Returns:
             Tuple of (frontmatter_dict, content)
         """
-        content = md_file.read_text(encoding='utf-8')
+        content = md_file.read_text(encoding="utf-8")
         frontmatter_dict = {}
 
         # Check for YAML frontmatter (standard --- delimited)
-        if content.startswith('---'):
-            parts = content.split('---', 2)
+        if content.startswith("---"):
+            parts = content.split("---", 2)
             if len(parts) >= 3:
                 try:
                     import yaml
+
                     frontmatter_dict = yaml.safe_load(parts[1])
                     content = parts[2].strip()
                 except Exception as e:
                     logger.warning(f"Failed to parse frontmatter in {md_file}: {e}")
 
         # Check for Document360 metadata format (## Metadata_Start ... ## Metadata_End)
-        if '## Metadata_Start' in content:
+        if "## Metadata_Start" in content:
             # Extract metadata block
-            metadata_pattern = r'## Metadata_Start.*?## Metadata_End\s*\n?'
+            metadata_pattern = r"## Metadata_Start.*?## Metadata_End\s*\n?"
             import re
+
             metadata_match = re.search(metadata_pattern, content, re.DOTALL)
             if metadata_match:
                 metadata_block = metadata_match.group(0)
                 # Parse metadata lines
-                for line in metadata_block.split('\n'):
-                    if line.startswith('##') and ':' in line:
+                for line in metadata_block.split("\n"):
+                    if line.startswith("##") and ":" in line:
                         # Parse "## key: value" format
-                        parts = line[2:].strip().split(':', 1)
+                        parts = line[2:].strip().split(":", 1)
                         if len(parts) == 2:
                             key = parts[0].strip()
                             value = parts[1].strip()
-                            if key not in ['Metadata_Start', 'Metadata_End']:
+                            if key not in ["Metadata_Start", "Metadata_End"]:
                                 frontmatter_dict[key] = value
 
                 # Remove metadata block from content
-                content = re.sub(metadata_pattern, '', content, flags=re.DOTALL).strip()
+                content = re.sub(metadata_pattern, "", content, flags=re.DOTALL).strip()
 
         return frontmatter_dict if frontmatter_dict else None, content
 
@@ -349,7 +361,7 @@ class Document360Parser:
             Cleaned slug
         """
         # Remove leading numbers and dashes
-        return re.sub(r'^\d+-', '', slug)
+        return re.sub(r"^\d+-", "", slug)
 
     def get_statistics(self) -> dict[str, Any]:
         """Get statistics about the parsed export.
@@ -365,9 +377,12 @@ class Document360Parser:
             "root_categories": len([c for c in categories if c.parent_id is None]),
             "public_articles": len([a for a in articles if a.is_public]),
             "articles_with_content": len([a for a in articles if a.content_markdown]),
-            "max_category_depth": max([c.level for c in categories]) if categories else 0,
-            "duplicate_files": len(list(self.articles_dir.glob("*(1).md"))) 
-                if self.articles_dir.exists() else 0,
+            "max_category_depth": max([c.level for c in categories])
+            if categories
+            else 0,
+            "duplicate_files": len(list(self.articles_dir.glob("*(1).md")))
+            if self.articles_dir.exists()
+            else 0,
         }
 
         # Language distribution

@@ -315,3 +315,8 @@ __version__.py
 _private
 docs.document360.com/
 docs.document360.com1/
+llms.txt
+.benchmarks/
+
+# OMC operational state (never committed)
+.omc/

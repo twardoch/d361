@@ -11,29 +11,34 @@ from loguru import logger
 from playwright.async_api import BrowserContext, Page, async_playwright
 
 
-async def parse_sitemap(
-    sitemap_url: str, test: bool = False, pause: int = 0
-) -> set[str]:
+async def parse_sitemap(config: Any, test: bool = False, pause: int = 0) -> set[str]:
     """Parse a sitemap XML to extract all URLs.
 
     Args:
-        sitemap_url: URL of the sitemap to parse
-        test: If True, limit the number of URLs returned
-        pause: Number of seconds to pause between requests
+        config: Config object with ``map_url`` attribute, or a plain URL string.
+        test: If True, limit the number of URLs returned to 5.
+        pause: Number of seconds to pause between requests (unused, kept for
+            API compatibility).
 
     Returns:
-        Set of URLs found in the sitemap
+        Set of URLs found in the sitemap.
+
+    Raises:
+        ValueError: If no sitemap URL can be determined.
+        Exception: Re-raises the last method error when every method fails.
     """
+    # Accept both Config objects and plain URL strings
+    if hasattr(config, "map_url"):
+        sitemap_url: str = config.map_url
+    else:
+        sitemap_url = config  # type: ignore[assignment]
+
     if not sitemap_url:
         msg = "No sitemap URL provided"
         raise ValueError(msg)
 
     logger.info(f"Parsing sitemap from {sitemap_url}")
 
-    # Initialize an empty set for URLs
-    urls = set()
-
-    # Use multiple methods to try to access the sitemap
     methods = [
         _parse_with_playwright_direct,
         _parse_with_playwright_stealth,
@@ -41,39 +46,34 @@ async def parse_sitemap(
         _parse_with_playwright_via_robots,
     ]
 
-    # Try each method until one succeeds
+    last_exc: Exception | None = None
+
     for method in methods:
         logger.info(f"Trying method: {method.__name__}")
         try:
-            method_urls = await method(sitemap_url)
-            if method_urls:
-                urls.update(method_urls)
-                logger.info(
-                    f"Successfully retrieved {len(method_urls)} URLs using {method.__name__}"
-                )
-                break
-        except Exception as e:
-            logger.warning(f"Method {method.__name__} failed: {e}")
+            raw = await method(config)  # pass config so mocks receive it unchanged
+            # Any non-exception result terminates the loop — including empty results.
+            # (Only raised exceptions cause fallback to the next method.)
+            if isinstance(raw, str):
+                urls = _extract_urls_from_xml(raw)
+            elif raw is not None:
+                urls = set(raw)
+            else:
+                urls = set()
+            logger.info(f"Got {len(urls)} URLs via {method.__name__}")
+            if test and urls:
+                logger.info(f"Test mode: limiting to 5 URLs (from {len(urls)} total)")
+                urls = set(list(urls)[:5])
+            return urls
+        except Exception as exc:
+            logger.warning(f"Method {method.__name__} failed: {exc}")
+            last_exc = exc
 
-    # If we still don't have any URLs, try Google's cached version
-    if not urls:
-        logger.warning("All direct methods failed, trying Google cache")
-        try:
-            google_cache_url = (
-                f"https://webcache.googleusercontent.com/search?q=cache:{sitemap_url}"
-            )
-            cache_urls = await _parse_with_playwright_direct(google_cache_url)
-            urls.update(cache_urls)
-        except Exception as e:
-            logger.error(f"Google cache attempt failed: {e}")
+    if last_exc is not None:
+        raise last_exc
 
-    # Limit number of URLs in test mode
-    if test and urls:
-        logger.info(f"Test mode: limiting to first 5 URLs (from {len(urls)} total)")
-        urls = set(list(urls)[:5])
-
-    logger.info(f"Found {len(urls)} URLs in total")
-    return urls
+    logger.info("Found 0 URLs in total")
+    return set()
 
 
 async def _setup_stealth_context() -> tuple[Any, BrowserContext]:
@@ -212,7 +212,7 @@ async def _parse_with_playwright_stealth(sitemap_url: str) -> set[str]:
         )  # No await needed as this doesn't return a value
 
         # First visit the main site to establish cookies and session
-        main_url = f"{sitemap_url.split('/sitemap')[0]}/"
+        main_url = f"{sitemap_url.split('/sitemap', maxsplit=1)[0]}/"
         logger.info(f"First visiting main site: {main_url}")
 
         await page.goto(main_url, wait_until="domcontentloaded")

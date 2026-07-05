@@ -66,7 +66,7 @@ async def generate_html_file(
         os.makedirs(html_dir, exist_ok=True)
 
         # Create safe filename from URL
-        filename = url.split("/")[-1].replace(".html", "") or "index"
+        filename = url.rsplit("/", maxsplit=1)[-1].replace(".html", "") or "index"
         filename = "".join(
             c if c.isalnum() or c in ["-", "_"] else "_" for c in filename
         )
@@ -111,7 +111,7 @@ async def generate_markdown_file(
         os.makedirs(md_dir, exist_ok=True)
 
         # Create safe filename from URL
-        filename = url.split("/")[-1].replace(".html", "") or "index"
+        filename = url.rsplit("/", maxsplit=1)[-1].replace(".html", "") or "index"
         filename = "".join(
             c if c.isalnum() or c in ["-", "_"] else "_" for c in filename
         )
