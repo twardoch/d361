@@ -320,3 +320,5 @@ llms.txt
 
 # OMC operational state (never committed)
 .omc/
+.specstory/
+data/offline/*.log
